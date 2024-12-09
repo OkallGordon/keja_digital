@@ -8,12 +8,12 @@
       <%= assigns[:page_title] || "KejaDigital" %>
     </.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
-    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
-    </script>
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}></script>
   </head>
   <body class="bg-white">
-    <ul class="relative z-10 flex items-center gap-4 px-4 sm:px-6 lg:px-8 justify-end">
-      <%= if @current_admin do %>
+    <!-- Admin login and registration links -->
+    <%= if @current_admin do %>
+      <ul class="relative z-10 flex items-center gap-4 px-4 sm:px-6 lg:px-8 justify-end">
         <li class="text-[0.8125rem] leading-6 text-zinc-900">
           <%= @current_admin.email %>
         </li>
@@ -34,13 +34,16 @@
             Log out
           </.link>
         </li>
-      <% else %>
+      </ul>
+    <% else %>
+      <!-- Show Admin login and register links if not logged in -->
+      <ul class="relative z-10 flex items-center gap-4 px-4 sm:px-6 lg:px-8 justify-end">
         <li>
           <.link
             href={~p"/admins/register"}
             class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
           >
-            Register
+            Admin Register
           </.link>
         </li>
         <li>
@@ -48,13 +51,15 @@
             href={~p"/admins/log_in"}
             class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
           >
-            Log in
+            Admin Log in
           </.link>
         </li>
-      <% end %>
-    </ul>
-    <ul class="relative z-10 flex items-center gap-4 px-4 sm:px-6 lg:px-8 justify-end">
-      <%= if @current_user do %>
+      </ul>
+    <% end %>
+
+    <!-- Tenant login and registration links -->
+    <%= if @current_user do %>
+      <ul class="relative z-10 flex items-center gap-4 px-4 sm:px-6 lg:px-8 justify-end">
         <li class="text-[0.8125rem] leading-6 text-zinc-900">
           <%= @current_user.email %>
         </li>
@@ -75,13 +80,16 @@
             Log out
           </.link>
         </li>
-      <% else %>
+      </ul>
+    <% else %>
+      <!-- Show Tenant login and register links if not logged in -->
+      <ul class="relative z-10 flex items-center gap-4 px-4 sm:px-6 lg:px-8 justify-end">
         <li>
           <.link
             href={~p"/users/register"}
             class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
           >
-            Register
+            Tenant Register
           </.link>
         </li>
         <li>
@@ -89,11 +97,12 @@
             href={~p"/users/log_in"}
             class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
           >
-            Log in
+            Tenant Log in
           </.link>
         </li>
-      <% end %>
-    </ul>
+      </ul>
+    <% end %>
+
     <%= @inner_content %>
   </body>
 </html>

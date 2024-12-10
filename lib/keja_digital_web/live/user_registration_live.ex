@@ -40,7 +40,15 @@ defmodule KejaDigitalWeb.UserRegistrationLive do
         <.input field={@form[:next_of_kin]} type="text" label="Next of Kin" required />
         <.input field={@form[:next_of_kin_contact]} type="text" label="Next of Kin Contact" required />
         <.input field={@form[:passport]} type="text" label="Passport Number" required />
-        <.input field={@form[:door_number]} type="text" label="Door Number" required />
+
+        <!-- Door Number Dropdown -->
+        <.input
+          field={@form[:door_number]}
+          type="select"
+          label="Door Number"
+          required
+          options={Enum.map(@available_door_numbers, &{&1.number, &1.number})}
+        />
 
         <!-- Original Fields -->
         <.input field={@form[:email]} type="email" label="Email" required />
@@ -57,14 +65,17 @@ defmodule KejaDigitalWeb.UserRegistrationLive do
   def mount(_params, _session, socket) do
     changeset = Store.change_user_registration(%User{})
 
+    # Fetch available door numbers
+    available_door_numbers = Store.list_available_door_numbers()
+
     socket =
       socket
       |> assign(trigger_submit: false, check_errors: false)
       |> assign_form(changeset)
+      |> assign(available_door_numbers: available_door_numbers)
 
     {:ok, socket, temporary_assigns: [form: nil]}
   end
-
   def handle_event("save", %{"user" => user_params}, socket) do
     case Store.register_user(user_params) do
       {:ok, user} ->
@@ -77,11 +88,16 @@ defmodule KejaDigitalWeb.UserRegistrationLive do
         changeset = Store.change_user_registration(user)
         {:noreply, socket |> assign(trigger_submit: true) |> assign_form(changeset)}
 
+      {:error, :door_number_taken} ->
+        changeset = Store.change_user_registration(%User{}, user_params)
+                    |> Ecto.Changeset.add_error(:door_number, "is already occupied")
+
+        {:noreply, socket |> assign(check_errors: true) |> assign_form(changeset)}
+
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, socket |> assign(check_errors: true) |> assign_form(changeset)}
     end
   end
-
   def handle_event("validate", %{"user" => user_params}, socket) do
     changeset = Store.change_user_registration(%User{}, user_params)
     {:noreply, assign_form(socket, Map.put(changeset, :action, :validate))}

@@ -79,32 +79,33 @@ defmodule KejaDigital.Store do
       {:error, %Ecto.Changeset{}}
 
   """
- def register_user(attrs) do
+
+def register_user(attrs) do
   Repo.transaction(fn ->
+    # Check if the door number is available
     case Repo.get_by(DoorNumber, number: attrs["door_number"], occupied: false) do
       nil ->
-        # If no available door, rollback with a simple error message or atom
-        Repo.rollback(:door_number_taken)
+        # If door number is not available, rollback and return an error
+        Repo.rollback({:error, :door_number_taken})
 
       door_number ->
-        # Proceed with the changeset creation
+        # Proceed with user registration
         changeset = User.registration_changeset(%User{}, attrs)
 
         case Repo.insert(changeset) do
           {:ok, user} ->
-            # Update door number as occupied
+            # After successful user registration, mark the door number as occupied
             Repo.update!(Ecto.Changeset.change(door_number, occupied: true))
+
             {:ok, user}
 
           {:error, changeset} ->
-            # Rollback with the changeset directly
-            Repo.rollback(changeset)
+            # If user registration fails, rollback and return changeset error
+            Repo.rollback({:error, changeset})
         end
     end
   end)
 end
-
-
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking user changes.
 

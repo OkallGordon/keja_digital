@@ -2,6 +2,21 @@ defmodule KejaDigital.Store.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @required_fields ~w(
+    full_name
+    postal_address
+    phone_number
+    nationality
+    organization
+    next_of_kin
+    next_of_kin_contact
+    passport
+    door_number
+  )a
+
+  @optional_fields ~w(photo)a
+
+
   schema "users" do
     field :email, :string
     field :password, :string, virtual: true, redact: true
@@ -9,6 +24,17 @@ defmodule KejaDigital.Store.User do
     field :current_password, :string, virtual: true, redact: true
     field :confirmed_at, :utc_datetime
     field :role, :string, default: "tenant"
+
+    field :full_name, :string
+    field :postal_address, :string
+    field :phone_number, :string
+    field :nationality, :string
+    field :organization, :string
+    field :next_of_kin, :string
+    field :next_of_kin_contact, :string
+    field :photo, :string
+    field :passport, :string
+    field :door_number, :string
 
     timestamps(type: :utc_datetime)
   end
@@ -38,9 +64,13 @@ defmodule KejaDigital.Store.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:email, :password, :role])
+    |> cast(attrs, [:email, :password, :role] ++ @required_fields ++ @optional_fields)
     |> validate_email(opts)
     |> validate_password(opts)
+    |> validate_required(@required_fields)
+    |> validate_format(:phone_number, ~r/^07\d{8}$|^\+254\d{9}$/, message: "Phone number must start with 07 or +254 and follow the correct format")
+    |> validate_format(:next_of_kin_contact, ~r/^07\d{8}$|^\+254\d{9}$/, message: "Next of kin contact must start with 07 or +254 and follow the correct format")
+    |> validate_length(:passport, min: 6, message: "Your passport number is too short")
     |> put_change(:role, "tenant")
   end
 

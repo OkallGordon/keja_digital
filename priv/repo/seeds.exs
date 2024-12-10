@@ -45,3 +45,47 @@ defmodule AdminSeeder do
 end
 
 AdminSeeder.seed_admins()
+
+
+alias KejaDigital.Repo
+alias KejaDigital.Store.DoorNumber
+
+# Ensure the DoorNumber schema and changeset are correctly loaded
+IO.puts("Seeding door numbers...")
+
+# List of door numbers to be seeded
+door_numbers = [
+  %{number: "Door 01", occupied: false},
+  %{number: "Door 02", occupied: false},
+  %{number: "Door 03", occupied: false},
+  %{number: "Door 04", occupied: false},
+  %{number: "Door 05", occupied: false},
+  %{number: "Door 06", occupied: false},
+  %{number: "Door 07", occupied: false},
+  %{number: "Door 08", occupied: false},
+  %{number: "Door 09", occupied: false},
+  %{number: "Door 10", occupied: false}
+]
+
+# Iterate through each door number and insert it into the database if it doesn't exist
+Enum.each(door_numbers, fn door_number ->
+  case Repo.get_by(DoorNumber, number: door_number.number) do
+    nil ->
+      # Door number doesn't exist, insert it
+      changeset = DoorNumber.changeset(%DoorNumber{}, door_number)
+
+      case Repo.insert(changeset) do
+        {:ok, _door_number} ->
+          IO.puts("Door number seeded: #{door_number.number}")
+
+        {:error, changeset} ->
+          IO.puts("Failed to seed door number: #{door_number.number}")
+          IO.inspect(changeset.errors)
+      end
+
+    _existing_door_number ->
+      IO.puts("Door number already exists: #{door_number.number}")
+  end
+end)
+
+IO.puts("Seeding completed!")

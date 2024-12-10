@@ -31,6 +31,18 @@ defmodule KejaDigitalWeb.UserRegistrationLive do
           Oops, something went wrong! Please check the errors below.
         </.error>
 
+        <!-- Additional Fields -->
+        <.input field={@form[:full_name]} type="text" label="Full Name" required />
+        <.input field={@form[:postal_address]} type="text" label="Postal Address" required />
+        <.input field={@form[:phone_number]} type="text" label="Phone Number" required />
+        <.input field={@form[:nationality]} type="text" label="Nationality" required />
+        <.input field={@form[:organization]} type="text" label="Organization" required />
+        <.input field={@form[:next_of_kin]} type="text" label="Next of Kin" required />
+        <.input field={@form[:next_of_kin_contact]} type="text" label="Next of Kin Contact" required />
+        <.input field={@form[:passport]} type="text" label="Passport Number" required />
+        <.input field={@form[:door_number]} type="text" label="Door Number" required />
+
+        <!-- Original Fields -->
         <.input field={@form[:email]} type="email" label="Email" required />
         <.input field={@form[:password]} type="password" label="Password" required />
 

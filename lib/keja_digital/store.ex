@@ -6,7 +6,12 @@ defmodule KejaDigital.Store do
   import Ecto.Query, warn: false
   alias KejaDigital.Repo
 
-  alias KejaDigital.Store.{User, UserToken, UserNotifier}
+  alias KejaDigital.Store.{User, UserToken, UserNotifier, DoorNumber}
+
+  def list_available_door_numbers do
+    Repo.all(from d in DoorNumber, where: d.occupied == false)
+  end
+
 
   ## Database getters
 
@@ -74,11 +79,31 @@ defmodule KejaDigital.Store do
       {:error, %Ecto.Changeset{}}
 
   """
-  def register_user(attrs) do
-    %User{}
-    |> User.registration_changeset(attrs)
-    |> Repo.insert()
-  end
+ def register_user(attrs) do
+  Repo.transaction(fn ->
+    case Repo.get_by(DoorNumber, number: attrs["door_number"], occupied: false) do
+      nil ->
+        # If no available door, rollback with a simple error message or atom
+        Repo.rollback(:door_number_taken)
+
+      door_number ->
+        # Proceed with the changeset creation
+        changeset = User.registration_changeset(%User{}, attrs)
+
+        case Repo.insert(changeset) do
+          {:ok, user} ->
+            # Update door number as occupied
+            Repo.update!(Ecto.Changeset.change(door_number, occupied: true))
+            {:ok, user}
+
+          {:error, changeset} ->
+            # Rollback with the changeset directly
+            Repo.rollback(changeset)
+        end
+    end
+  end)
+end
+
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking user changes.

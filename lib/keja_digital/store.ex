@@ -316,6 +316,10 @@ end
     |> Ecto.Multi.delete_all(:tokens, UserToken.by_user_and_contexts_query(user, ["confirm"]))
   end
 
+  def valid_password?(user, password) do
+    Bcrypt.verify_pass(password, user.encrypted_password)
+  end
+
   ## Reset password
 
   @doc ~S"""

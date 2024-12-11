@@ -79,25 +79,35 @@ defmodule KejaDigitalWeb.UserRegistrationLive do
   def handle_event("save", %{"user" => user_params}, socket) do
     case Store.register_user(user_params) do
       {:ok, user} ->
-        {:ok, _} =
-          Store.deliver_user_confirmation_instructions(
-            user,
-            &url(~p"/users/confirm/#{&1}")
-          )
+        # Deliver confirmation instructions
+        case Store.deliver_user_confirmation_instructions(
+               user,
+               &url(~p"/users/confirm/#{&1}")
+             ) do
+          {:ok, _} ->
+            changeset = Store.change_user_registration(user)
+            {:noreply, socket |> assign(trigger_submit: true) |> assign_form(changeset)}
 
-        changeset = Store.change_user_registration(user)
-        {:noreply, socket |> assign(trigger_submit: true) |> assign_form(changeset)}
+          {:error, _error} ->
+            # Handle errors from delivering confirmation email
+            changeset = Store.change_user_registration(user)
+                        |> Ecto.Changeset.add_error(:email, "failed to send confirmation instructions")
+            {:noreply, socket |> assign(check_errors: true) |> assign_form(changeset)}
+        end
 
       {:error, :door_number_taken} ->
+        # Handle door number already taken
         changeset = Store.change_user_registration(%User{}, user_params)
                     |> Ecto.Changeset.add_error(:door_number, "is already occupied")
 
         {:noreply, socket |> assign(check_errors: true) |> assign_form(changeset)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
+        # Handle other errors from registration
         {:noreply, socket |> assign(check_errors: true) |> assign_form(changeset)}
     end
   end
+
   def handle_event("validate", %{"user" => user_params}, socket) do
     changeset = Store.change_user_registration(%User{}, user_params)
     {:noreply, assign_form(socket, Map.put(changeset, :action, :validate))}

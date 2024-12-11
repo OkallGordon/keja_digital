@@ -77,6 +77,7 @@ defmodule KejaDigital.Store.User do
     |> validate_length(:passport, min: 6, message: "Your passport number is too short")
     |> unique_constraint(:email)
     |> unique_constraint(:phone_number)
+    |> unique_constraint(:full_name)
     |> put_change(:role, "tenant")
   end
 
@@ -119,6 +120,7 @@ defmodule KejaDigital.Store.User do
       add_error(changeset, field, "must be a valid and existing postal address")
     end
   end
+
 
   defp validate_password(changeset, opts) do
     changeset

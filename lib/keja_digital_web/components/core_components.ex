@@ -17,7 +17,7 @@ defmodule KejaDigitalWeb.CoreComponents do
   use Phoenix.Component
 
   alias Phoenix.LiveView.JS
-  import KejaDigitalWeb.Gettext
+  use Gettext, backend: KejaDigitalWeb.Gettext
 
   @doc """
   Renders a modal.

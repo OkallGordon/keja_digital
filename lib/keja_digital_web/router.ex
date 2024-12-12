@@ -73,6 +73,7 @@ defmodule KejaDigitalWeb.Router do
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
 
       live "/tenant/profile", UserProfileLive
+
     end
   end
 

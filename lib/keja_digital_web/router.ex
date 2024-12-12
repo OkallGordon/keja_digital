@@ -71,6 +71,8 @@ defmodule KejaDigitalWeb.Router do
       on_mount: [{KejaDigitalWeb.UserAuth, :ensure_authenticated}] do
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
+
+      live "/tenant/profile", UserProfileLive
     end
   end
 
@@ -109,6 +111,7 @@ defmodule KejaDigitalWeb.Router do
       on_mount: [{KejaDigitalWeb.AdminAuth, :ensure_authenticated}] do
       live "/admins/settings", AdminSettingsLive, :edit
       live "/admins/settings/confirm_email/:token", AdminSettingsLive, :confirm_email
+
     end
   end
 

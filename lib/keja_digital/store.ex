@@ -381,4 +381,20 @@ end
       {:error, :user, changeset, _} -> {:error, changeset}
     end
   end
+
+  def authenticate_user(email, password, door_number) do
+    user = Repo.get_by(User, email: email, door_number: door_number)
+
+    case user do
+      nil ->
+        {:error, :invalid_credentials}
+
+      %User{hashed_password: hashed_password} = user ->
+        if Bcrypt.verify_pass(password, hashed_password) do
+          {:ok, user}
+        else
+          {:error, :invalid_credentials}
+        end
+    end
+  end
 end

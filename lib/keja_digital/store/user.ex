@@ -23,7 +23,7 @@ defmodule KejaDigital.Store.User do
     field :hashed_password, :string, redact: true
     field :current_password, :string, virtual: true, redact: true
     field :confirmed_at, :utc_datetime
-    field :role, :string, default: "tenant"
+    field :role, :string, default: "Tenant"
 
     field :full_name, :string
     field :postal_address, :string
@@ -65,13 +65,12 @@ defmodule KejaDigital.Store.User do
   def registration_changeset(user, attrs, opts \\ []) do
     user
     |> cast(attrs, [:email, :password, :role] ++ @required_fields ++ @optional_fields)
-    |> validate_length(:full_name, min: 15, max: 30)
+    |> validate_length(:full_name, min: 10, max: 30)
     |> validate_format(:full_name, ~r/^[A-Z][a-z]+\s[A-Za-z]+\s?[A-Za-z]*$/, message: "must start with a capital letter and contain 2 or 3 names")
     |> validate_email(opts)
     |> validate_password(opts)
     |> validate_required(@required_fields)
     |> validate_phone_number(:phone_number)
-    |> validate_postal_address(:postal_address)
     |> validate_format(:phone_number, ~r/^07\d{8}$|^\+254\d{9}$/, message: "Phone number must start with 07 or +254 and follow the correct format")
     |> validate_format(:next_of_kin_contact, ~r/^07\d{8}$|^\+254\d{9}$/, message: "Next of kin contact must start with 07 or +254 and follow the correct format")
     |> validate_length(:passport, min: 6, message: "Your passport number is too short")
@@ -107,20 +106,6 @@ defmodule KejaDigital.Store.User do
         end
     end
   end
-
-  # Custom validation for postal address (to be real and existing)
-  defp validate_postal_address(changeset, field) do
-    postal_address = get_field(changeset, field)
-
-    # For simplicity, we will assume a mock check here.
-    # You can integrate with an external service or database to verify the address if necessary.
-    if postal_address in ["123 Nairobi", "456 Mombasa", "789 Kisumu"] do
-      changeset
-    else
-      add_error(changeset, field, "must be a valid and existing postal address")
-    end
-  end
-
 
   defp validate_password(changeset, opts) do
     changeset

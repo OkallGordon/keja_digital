@@ -73,6 +73,12 @@ defmodule KejaDigitalWeb.Router do
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
 
       live "/tenant/profile", UserProfileLive
+      live "/tenant_agreements", TenantAgreementLive.Index, :index
+      live "/tenant_agreements/new", TenantAgreementLive.Index, :new
+      live "/tenant_agreements/:id/edit", TenantAgreementLive.Index, :edit
+      live "/tenant_agreements/:id", TenantAgreementLive.Show, :show
+      live "/tenant_agreements/:id/show/edit", TenantAgreementLive.Show, :edit
+
 
     end
   end

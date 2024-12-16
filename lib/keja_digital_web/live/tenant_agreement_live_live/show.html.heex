@@ -1,0 +1,32 @@
+<.header>
+  Tenancy agreement <%= @tenant_agreement_live.id %>
+  <:subtitle>This is a tenancy agreement record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/tenant_agreements/#{@tenant_agreement_live}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit tenancy agreement</.button> 
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Tenant name"><%= @tenant_agreement_live.tenant_name %></:item>
+  <:item title="Tenant address"><%= @tenant_agreement_live.tenant_address %></:item>
+  <:item title="Tenant phone"><%= @tenant_agreement_live.tenant_phone %></:item>
+  <:item title="Rent"><%= @tenant_agreement_live.rent %></:item>
+  <:item title="Deposit"><%= @tenant_agreement_live.deposit %></:item>
+  <:item title="Start date"><%= @tenant_agreement_live.start_date %></:item>
+  <:item title="End date"><%= @tenant_agreement_live.end_date %></:item>
+</.list>
+
+<.back navigate={~p"/tenant_agreements"}>Back to tenancy agreements</.back>
+
+<.modal :if={@live_action == :edit} id="tenant_agreement-modal" show on_cancel={JS.patch(~p"/tenant_agreements/#{@tenant_agreement_live}")}>
+  <.live_component
+    module={KejaDigitalWeb.TenantAgreementLive.FormComponent}
+    id={@tenant_agreement_live.id}
+    title={@page_title}
+    action={@live_action}
+    tenant_agreement={@tenant_agreement_live}
+    patch={~p"/tenant_agreements/#{@tenant_agreement_live}"}
+  />
+</.modal>

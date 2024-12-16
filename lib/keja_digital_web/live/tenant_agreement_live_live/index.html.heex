@@ -1,0 +1,52 @@
+<.header>
+  <h2>Listing Tenancy Agreements</h2>
+  <:actions>
+    <.link patch={~p"/tenant_agreements/new"}>
+      <.button class="btn-new-tenant">New Tenancy Agreement</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<div class="table-container">
+  <.table
+    id="tenant_agreements"
+    rows={@streams.tenant_agreement_live}
+    row_click={fn {_id, tenant_agreement_live} -> JS.navigate(~p"/tenant_agreements/#{tenant_agreement_live}") end}
+  >
+    <:col :let={{_id, tenant_agreement_live}} label="Tenant Name"><%= tenant_agreement_live.tenant_name %></:col>
+    <:col :let={{_id, tenant_agreement_live}} label="Tenant Address"><%= tenant_agreement_live.tenant_address %></:col>
+    <:col :let={{_id, tenant_agreement_live}} label="Tenant Phone"><%= tenant_agreement_live.tenant_phone %></:col>
+    <:col :let={{_id, tenant_agreement_live}} label="Rent"><%= tenant_agreement_live.rent %></:col>
+    <:col :let={{_id, tenant_agreement_live}} label="Deposit"><%= tenant_agreement_live.deposit %></:col>
+    <:col :let={{_id, tenant_agreement_live}} label="Start Date"><%= tenant_agreement_live.start_date %></:col>
+    <:col :let={{_id, tenant_agreement_live}} label="Signature"><%= tenant_agreement_live.signature %></:col>
+    <:col :let={{_id, tenant_agreement_live}} label="Signed at"><%= tenant_agreement_live.signed_at %></:col>
+    <:col :let={{_id, tenant_agreement_live}} label="End Date"><%= tenant_agreement_live.end_date %></:col>
+    <:action :let={{_id, tenant_agreement_live}}>
+      <div class="sr-only">
+        <.link navigate={~p"/tenant_agreements/#{tenant_agreement_live}"}>Show</.link>
+      </div>
+      <.link patch={~p"/tenant_agreements/#{tenant_agreement_live}/edit"}>Edit</.link>
+    </:action>
+    <:action :let={{id, tenant_agreement_live}}>
+      <.link
+        phx-click={JS.push("delete", value: %{id: tenant_agreement_live.id}) |> hide("##{id}")}
+        data-confirm="Are you sure?"
+        class="btn-delete"
+      >
+        Delete
+      </.link>
+    </:action>
+  </.table>
+</div>
+
+<.modal :if={@live_action in [:new, :edit]} id="tenant_agreement-modal" show on_cancel={JS.patch(~p"/tenant_agreements")}>
+  <.live_component
+    module={KejaDigitalWeb.TenantAgreementLive.FormComponent}
+    id={@tenant_agreement_live.id || :new}
+    title={@page_title}
+    action={@live_action}
+    tenant_agreement_live={@tenant_agreement_live}
+    patch={~p"/tenant_agreements"}
+  />
+</.modal>

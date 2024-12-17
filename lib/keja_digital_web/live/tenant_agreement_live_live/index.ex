@@ -3,10 +3,40 @@ defmodule KejaDigitalWeb.TenantAgreementLive.Index do
 
   alias KejaDigital.Agreements
   alias KejaDigital.Agreements.TenantAgreementLive
+  alias KejaDigital.Store
+  alias KejaDigital.Store.User
 
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok, stream(socket, :tenant_agreement_live, Agreements.list_tenant_agreements())}
+  def mount(_params, %{"user_token" => user_token}, socket) do
+    case Store.get_user_by_session_token(user_token) do
+      %User{} = user ->
+        # Fetch the tenancy agreement for the current user
+        tenant_agreement_live = Agreements.list_tenant_agreements_for_user(user.id)
+
+        # Assign the tenancy agreements to the socket
+        socket = assign(socket, :tenant_agreement_live, tenant_agreement_live)
+        socket = assign(socket, :current_user, user)
+
+        # Initialize stream for tenancy agreements
+        socket = socket |> stream(:tenant_agreement_live, tenant_agreement_live)
+
+        # Check if there is any tenancy agreement and if it has been submitted
+        can_edit = case tenant_agreement_live do
+          [] -> true  # No agreement, so can edit (create new)
+          [agreement] ->
+            if agreement.submitted do
+              false  # Agreement is already submitted, cannot edit
+            else
+              true  # Agreement exists but not submitted, can edit
+            end
+        end
+
+        # Return socket with the correct page title and editing permissions
+        {:ok, socket |> assign(:can_edit, can_edit) |> assign(:page_title, if(can_edit, do: "New Tenancy Agreement", else: "View Tenancy Agreement"))}
+
+      nil ->
+        {:ok, push_navigate(socket, to: "/login")}
+    end
   end
 
   @impl true

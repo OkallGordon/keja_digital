@@ -21,6 +21,11 @@ defmodule KejaDigital.Agreements do
     Repo.all(TenantAgreementLive)
   end
 
+
+  def list_tenant_agreements_for_user(id) do
+    Repo.all(from t in TenantAgreementLive, where: t.id == ^id)
+  end
+
   @doc """
   Gets a single tenant_agreement_live.
 
@@ -52,6 +57,12 @@ defmodule KejaDigital.Agreements do
   def create_tenant_agreement_live(attrs \\ %{}) do
     %TenantAgreementLive{}
     |> TenantAgreementLive.changeset(attrs)
+    |> tap(fn changeset ->
+      if changeset.valid? == false do
+        IO.puts("Changeset is invalid")
+        IO.inspect(changeset.errors, label: "Validation Errors")
+      end
+    end)
     |> Repo.insert()
   end
 

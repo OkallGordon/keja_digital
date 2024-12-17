@@ -21,7 +21,6 @@
     <:col :let={{_id, tenant_agreement_live}} label="Start Date"><%= tenant_agreement_live.start_date %></:col>
     <:col :let={{_id, tenant_agreement_live}} label="Signature"><%= tenant_agreement_live.signature %></:col>
     <:col :let={{_id, tenant_agreement_live}} label="Signed at"><%= tenant_agreement_live.signed_at %></:col>
-    <:col :let={{_id, tenant_agreement_live}} label="End Date"><%= tenant_agreement_live.end_date %></:col>
     <:action :let={{_id, tenant_agreement_live}}>
       <div class="sr-only">
         <.link navigate={~p"/tenant_agreements/#{tenant_agreement_live}"}>Show</.link>

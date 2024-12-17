@@ -7,6 +7,8 @@ defmodule KejaDigital.Agreements do
   alias KejaDigital.Repo
 
   alias KejaDigital.Agreements.TenantAgreementLive
+  alias KejaDigital.Backoffice
+  alias KejaDigital.Notifications
 
   @doc """
   Returns the list of tenant_agreements.
@@ -54,17 +56,32 @@ defmodule KejaDigital.Agreements do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_tenant_agreement_live(attrs \\ %{}) do
-    %TenantAgreementLive{}
-    |> TenantAgreementLive.changeset(attrs)
-    |> tap(fn changeset ->
-      if changeset.valid? == false do
-        IO.puts("Changeset is invalid")
-        IO.inspect(changeset.errors, label: "Validation Errors")
-      end
-    end)
-    |> Repo.insert()
+ def create_tenant_agreement_live(attrs) do
+  # Insert the tenant agreement
+  case %TenantAgreementLive{}
+       |> TenantAgreementLive.changeset(attrs)
+       |> Repo.insert() do
+    {:ok, tenant_agreement} ->
+      # Find all admin users
+      admins = Backoffice.list_admin_users()
+
+      # Create notifications for each admin
+      Enum.each(admins, fn admin ->
+        Notifications.create_notification(%{
+          title: "New Tenant Agreement Submitted",
+          content: "A new tenant agreement has been submitted by #{tenant_agreement.tenant_name}",
+          is_read: false,
+          user_id: admin.id,
+          tenant_agreement_id: tenant_agreement.id
+        })
+      end)
+
+      {:ok, tenant_agreement}
+
+    {:error, changeset} ->
+      {:error, changeset}
   end
+end
 
   @doc """
   Updates a tenant_agreement_live.

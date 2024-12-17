@@ -8,6 +8,20 @@ defmodule KejaDigital.Backoffice do
 
   alias KejaDigital.Backoffice.{Admin, AdminToken, AdminNotifier}
 
+
+  def list_admin_users do
+    # Query users with admin role
+    from(a in Admin, where: a.role == "admin")
+    |> Repo.all()
+  end
+
+  # Optional: If you want to get users with specific admin permissions
+  def list_admin_users_with_permission(permission) do
+    from(a in Admin,
+      where: a.role == "admin" and a.permissions == ^permission)
+    |> Repo.all()
+  end
+
   ## Database getters
 
   @doc """

@@ -148,6 +148,9 @@ defmodule KejaDigitalWeb.TenantAgreementLive.FormComponent do
     IO.puts("Saving tenant agreement")
     IO.inspect(tenant_agreement_live_params, label: "Submission Params")
 
+    tenant_agreement_live_params =
+      Map.put(tenant_agreement_live_params, "status", "panding_review")
+
     case Agreements.create_tenant_agreement_live(tenant_agreement_live_params) do
       {:ok, _tenant_agreement_live} ->
         {:noreply,
@@ -169,6 +172,4 @@ defmodule KejaDigitalWeb.TenantAgreementLive.FormComponent do
          |> put_flash(:error, "Failed to save tenant agreement. Errors: #{Enum.join(error_messages, ", ")}")}
     end
   end
-
-
 end

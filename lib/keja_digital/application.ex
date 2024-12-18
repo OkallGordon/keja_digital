@@ -17,6 +17,7 @@ defmodule KejaDigital.Application do
       # Start a worker by calling: KejaDigital.Worker.start_link(arg)
       # {KejaDigital.Worker, arg},
       # Start to serve requests, typically the last entry
+      {Phoenix.PubSub, name: KejaDigital.PubSub},
       KejaDigitalWeb.Endpoint
     ]
 

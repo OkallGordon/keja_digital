@@ -1,7 +1,7 @@
-defmodule KejaDigitalWeb.Admin.NotificationsLive do
+defmodule KejaDigitalWeb.NotificationsLive do
   use KejaDigitalWeb, :live_view
   alias KejaDigital.Notifications
-  alias KejaDigitalWeb.AdminAuth
+  alias KejaDigital.Backoffice
 
   def render(assigns) do
     ~H"""
@@ -17,19 +17,23 @@ defmodule KejaDigitalWeb.Admin.NotificationsLive do
     """
   end
 
-  def mount(_params, session, socket) do
-    current_user = AdminAuth.fetch_current_admin(session)
+  def mount(_params, %{"admin_token" => admin_token}, socket) do
+    case Backoffice.get_admin_by_session_token(admin_token) do
+      nil ->
+        {:redirect, to: "/admin/login"}
 
-    if current_user do
-      notifications = Notifications.list_notifications(current_user.id)
+      current_admin ->
+        notifications = Notifications.list_notifications(current_admin.id)
 
-      {:ok,
-       socket
-       |> assign(:current_user, current_user)
-       |> assign(:notifications, notifications)}
-    else
-      # Redirect to login if the admin is not authenticated
-      {:redirect, to: "/admin/login"}
+        {:ok,
+         socket
+         |> assign(:current_admin, current_admin)
+         |> assign(:notifications, notifications)}
     end
+  end
+
+  def mount(_params, _session, _socket) do
+    # If the session does not contain the required token, redirect to login.
+    {:redirect, to: "/admin/login"}
   end
 end

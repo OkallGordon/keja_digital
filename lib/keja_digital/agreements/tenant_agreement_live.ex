@@ -3,20 +3,18 @@ defmodule KejaDigital.Agreements.TenantAgreementLive do
   import Ecto.Changeset
 
   schema "tenant_agreements" do
-      field :tenant_name, :string
-      field :tenant_address, :string
-      field :tenant_phone, :string
-      field :rent, :decimal
-      field :late_fee, :string
-      field :deposit, :decimal
-      field :signature, :string
-      field :start_date, :date
-      field :agreement_content, :string
-      field :signed_at, :naive_datetime
+    field :tenant_name, :string
+    field :tenant_address, :string
+    field :tenant_phone, :string
+    field :rent, :decimal
+    field :late_fee, :string
+    field :deposit, :decimal
+    field :signature, :string
+    field :start_date, :date
+    field :agreement_content, :string
+    field :signed_at, :naive_datetime
 
-      field :status, :string, default: "pending_review"
-
-
+    field :status, :string, default: "pending_review"
 
     timestamps(type: :utc_datetime)
   end
@@ -30,6 +28,6 @@ defmodule KejaDigital.Agreements.TenantAgreementLive do
     |> validate_format(:tenant_phone, ~r/^[0-9+]+$/, message: "must contain only numbers and plus sign")
     |> validate_number(:rent, greater_than: 0)
     |> validate_number(:deposit, greater_than: 0)
-    |> validate_inclusion(:status, ["pending_review", "approved", "rejected"])
+    |> validate_inclusion(:status, ["pending_review", "approved", "rejected"])  # This validation is fine for string fields
   end
 end

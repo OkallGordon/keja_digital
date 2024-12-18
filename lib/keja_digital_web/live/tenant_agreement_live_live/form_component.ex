@@ -4,7 +4,7 @@ defmodule KejaDigitalWeb.TenantAgreementLive.FormComponent do
   alias KejaDigital.Agreements
 
   @impl true
- def render(assigns) do
+  def render(assigns) do
     IO.inspect(assigns.form_submitted, label: "Form Submitted")
 
     ~H"""
@@ -33,7 +33,6 @@ defmodule KejaDigitalWeb.TenantAgreementLive.FormComponent do
         <.input field={@form[:tenant_address]} type="text" label="Tenant Address" />
         <.input field={@form[:tenant_phone]} type="text" label="Tenant Phone" />
         <.input field={@form[:agreement_content]} label="Agreement Content" />
-
 
         <h3><strong>3. Tenancy Details</strong></h3>
         <p>This tenancy agreement establishes that the Tenant is permitted to occupy the specified rental property. The Tenant agrees to comply with the terms set forth in this agreement during the period of occupancy.</p>
@@ -87,7 +86,7 @@ defmodule KejaDigitalWeb.TenantAgreementLive.FormComponent do
 
         <h3><strong>9. Inspections</strong></h3>
         <p>
-          The caretaker reserves the right to inspect the property on a quarterly basis, with 24 hours’ notice. The Landlady shall, at all reasonable times upon notifying the Tenant, be entitled to enter the premises to inspect the state of cleanliness and all repairs or carry out any work necessary for the proper upkeep of the premises.
+          The caretaker reserves the right to inspect the property on a quarterly basis, with 24 hours' notice. The Landlady shall, at all reasonable times upon notifying the Tenant, be entitled to enter the premises to inspect the state of cleanliness and all repairs or carry out any work necessary for the proper upkeep of the premises.
         </p>
 
         <h3><strong>10. Unauthorized Structures</strong></h3>
@@ -102,7 +101,7 @@ defmodule KejaDigitalWeb.TenantAgreementLive.FormComponent do
 
         <h3><strong>12. In Witness of Parties</strong></h3>
         <p>
-          This agreement is acknowledged by Caretaker, who serves as a witness to the Landlord and Tenant’s agreement.
+          This agreement is acknowledged by Caretaker, who serves as a witness to the Landlord and Tenant's agreement.
         </p>
 
         <h3><strong>13. Tenant Acknowledgment</strong></h3>
@@ -112,6 +111,9 @@ defmodule KejaDigitalWeb.TenantAgreementLive.FormComponent do
 
         <.input field={@form[:signature]} type="text" label="Tenant's Name (Signature)" />
         <.input field={@form[:start_date]} type="date" label="Start Date" />
+
+        <!-- adding the status to specify the status of the form -->
+        <.input field={@form[:status]} type="select" label="Status" options={["pending_review", "approved", "rejected"]} />
 
         <:actions>
           <.button phx-disable-with="Saving...">Submit Tenancy Agreement</.button>
@@ -126,7 +128,6 @@ defmodule KejaDigitalWeb.TenantAgreementLive.FormComponent do
     </div>
     """
   end
-
   @impl true
   def update(%{tenant_agreement_live: tenant_agreement_live} = assigns, socket) do
     {:ok,
@@ -149,7 +150,7 @@ defmodule KejaDigitalWeb.TenantAgreementLive.FormComponent do
     IO.inspect(tenant_agreement_live_params, label: "Submission Params")
 
     tenant_agreement_live_params =
-      Map.put(tenant_agreement_live_params, "status", "panding_review")
+      Map.put(tenant_agreement_live_params, "status", "pending_review")
 
     case Agreements.create_tenant_agreement_live(tenant_agreement_live_params) do
       {:ok, _tenant_agreement_live} ->

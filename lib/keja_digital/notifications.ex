@@ -18,8 +18,9 @@ defmodule KejaDigital.Notifications do
 
   """
   def list_notifications(user_id) do
-    Repo.all(Notification)
-    |> where(user_id: ^user_id)
+    Notification
+    |> where([n], n.user_id == ^user_id)
+    |> Repo.all()
   end
 
   @doc """

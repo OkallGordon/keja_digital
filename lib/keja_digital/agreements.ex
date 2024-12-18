@@ -28,6 +28,12 @@ defmodule KejaDigital.Agreements do
     Repo.all(from t in TenantAgreementLive, where: t.id == ^id)
   end
 
+def list_pending_tenant_agreements do
+  from(ta in TenantAgreementLive,
+    where: ta.status == "pending_review",
+    order_by: [desc: ta.inserted_at])
+  |> Repo.all()
+end
   @doc """
   Gets a single tenant_agreement_live.
 
@@ -76,6 +82,13 @@ defmodule KejaDigital.Agreements do
         })
       end)
 
+      # Broadcast the new tenant agreement to admin channel
+      Phoenix.PubSub.broadcast(
+        KejaDigital.PubSub,
+        "admin_notifications",
+        {:new_tenant_agreement, tenant_agreement}
+      )
+
       {:ok, tenant_agreement}
 
     {:error, changeset} ->
@@ -100,6 +113,14 @@ end
     |> TenantAgreementLive.changeset(attrs)
     |> Repo.update()
   end
+
+def update_tenant_agreement_status(id, status) do
+  tenant_agreement = get_tenant_agreement_live!(id)
+
+  tenant_agreement
+  |> TenantAgreementLive.changeset(%{status: status})
+  |> Repo.update()
+end
 
   @doc """
   Deletes a tenant_agreement_live.

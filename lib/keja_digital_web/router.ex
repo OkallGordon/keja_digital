@@ -48,7 +48,7 @@ defmodule KejaDigitalWeb.Router do
     end
   end
 
-  ## Authentication routes
+  ## Authentication routes for tenants
 
   scope "/", KejaDigitalWeb do
     pipe_through [:browser, :redirect_if_user_is_authenticated]
@@ -95,7 +95,7 @@ defmodule KejaDigitalWeb.Router do
     end
   end
 
-  ## Authentication routes
+  ## Authentication routes for admins
 
   scope "/", KejaDigitalWeb do
     pipe_through [:browser, :redirect_if_admin_is_authenticated]
@@ -119,6 +119,9 @@ defmodule KejaDigitalWeb.Router do
       live "/admins/settings", AdminSettingsLive, :edit
       live "/admins/settings/confirm_email/:token", AdminSettingsLive, :confirm_email
 
+      live "/notifications", NotificationsLive, :show
+      live "/dashboard", DashboardLive
+      live "/tenant_agreement/:id", AdminShow, :show
     end
   end
 

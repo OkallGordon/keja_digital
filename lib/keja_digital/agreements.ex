@@ -34,6 +34,32 @@ def list_pending_tenant_agreements do
     order_by: [desc: ta.inserted_at])
   |> Repo.all()
 end
+
+# In lib/keja_digital/agreements.ex
+def list_tenant_agreements_by_status(statuses) when is_list(statuses) do
+  from(t in TenantAgreementLive,
+    where: t.status in ^statuses,
+    order_by: [desc: t.inserted_at]
+  )
+  |> Repo.all()
+end
+
+def update_tenant_agreement_live(%TenantAgreementLive{} = agreement, attrs) do
+  agreement
+  |> TenantAgreementLive.changeset(attrs)
+  |> Repo.update()
+  |> broadcast_agreement_update()
+end
+
+defp broadcast_agreement_update({:ok, agreement} = result) do
+  Phoenix.PubSub.broadcast(
+    KejaDigital.PubSub,
+    "tenant_agreements",
+    {:agreement_updated, agreement}
+  )
+  result
+end
+defp broadcast_agreement_update(result), do: result
   @doc """
   Gets a single tenant_agreement_live.
 
@@ -134,11 +160,6 @@ end
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_tenant_agreement_live(%TenantAgreementLive{} = tenant_agreement_live, attrs) do
-    tenant_agreement_live
-    |> TenantAgreementLive.changeset(attrs)
-    |> Repo.update()
-  end
 
 def update_tenant_agreement_status(id, status) do
   tenant_agreement = get_tenant_agreement_live!(id)

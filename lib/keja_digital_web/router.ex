@@ -122,6 +122,8 @@ defmodule KejaDigitalWeb.Router do
       live "/notifications", NotificationsLive, :show
       live "/dashboard", DashboardLive
       live "/tenant_agreement/:id", AdminShow, :show
+      live "/agreements", AdminReviewLive
+      live "/agreements/:id", AgreementDetailLive
     end
   end
 

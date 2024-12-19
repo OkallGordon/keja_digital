@@ -2,6 +2,7 @@ defmodule KejaDigitalWeb.TenantAgreementLive.FormComponent do
   use KejaDigitalWeb, :live_component
 
   alias KejaDigital.Agreements
+  alias KejaDigital.Notifications
 
   @impl true
   def render(assigns) do
@@ -9,10 +10,31 @@ defmodule KejaDigitalWeb.TenantAgreementLive.FormComponent do
 
     ~H"""
     <div>
-      <.header>
-        <%= @title %>
-        <:subtitle>Use this form to manage tenancy agreement records in your database.</:subtitle>
-      </.header>
+    <.header>
+      <%= @title %>
+      <:subtitle>Use this form to manage tenancy agreement records in your database.</:subtitle>
+    </.header>
+
+    <%= if @submission_check do %>
+      <div class="mt-4 p-4 rounded-md bg-red-50 border border-red-200">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800">
+              Agreement Already Submitted
+            </h3>
+            <div class="mt-2 text-sm text-red-700">
+              <p>Status: <%= @submission_check.status %></p>
+              <p>Submitted on: <%= Calendar.strftime(@submission_check.submitted_at, "%B %d, %Y at %I:%M %p") %></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
 
       <.simple_form
         for={@form}
@@ -136,41 +158,124 @@ defmodule KejaDigitalWeb.TenantAgreementLive.FormComponent do
      |> assign_new(:form, fn ->
        to_form(Agreements.change_tenant_agreement_live(tenant_agreement_live))
      end)
-     |> assign(:form_submitted, false)}
+     |> assign(:form_submitted, false)
+     |> assign(:submission_check, nil)}  # Add this to track submission status
   end
 
   @impl true
   def handle_event("validate", %{"tenant_agreement_live" => tenant_agreement_live_params}, socket) do
-    changeset = Agreements.change_tenant_agreement_live(socket.assigns.tenant_agreement_live, tenant_agreement_live_params)
-    {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
+    # Check for existing submission when tenant name changes
+    submission_check =
+      if tenant_name = tenant_agreement_live_params["tenant_name"] do
+        case Agreements.get_tenant_agreement_by_name(tenant_name) do
+          nil -> nil
+          existing ->
+            %{
+              status: existing.status,
+              submitted_at: existing.inserted_at
+            }
+        end
+      end
+
+    changeset =
+      socket.assigns.tenant_agreement_live
+      |> Agreements.change_tenant_agreement_live(tenant_agreement_live_params)
+      |> maybe_add_submission_error(submission_check)
+
+    {:noreply,
+     socket
+     |> assign(:submission_check, submission_check)
+     |> assign(:form, to_form(changeset, action: :validate))}
   end
 
   def handle_event("save", %{"tenant_agreement_live" => tenant_agreement_live_params}, socket) do
-    IO.puts("Saving tenant agreement")
-    IO.inspect(tenant_agreement_live_params, label: "Submission Params")
+    # Double check for existing submission before saving
+    case Agreements.get_tenant_agreement_by_name(tenant_agreement_live_params["tenant_name"]) do
+      nil ->
+        handle_new_submission(socket, tenant_agreement_live_params)
 
-    tenant_agreement_live_params =
-      Map.put(tenant_agreement_live_params, "status", "pending_review")
+      _existing ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "You have already submitted a tenant agreement")
+         |> assign(:form_submitted, false)}
+    end
+  end
 
-    case Agreements.create_tenant_agreement_live(tenant_agreement_live_params) do
-      {:ok, _tenant_agreement_live} ->
+  # Helper function to handle new submissions
+  defp handle_new_submission(socket, tenant_agreement_live_params) do
+    params_with_status = Map.put(tenant_agreement_live_params, "status", "pending_review")
+
+    case Agreements.create_tenant_agreement_live(params_with_status) do
+      {:ok, tenant_agreement} ->
+        broadcast_admin_notification(tenant_agreement)
+
         {:noreply,
          socket
          |> put_flash(:info, "Tenant agreement created successfully")
          |> assign(:form_submitted, true)}
 
-      {:error, changeset} ->
-        IO.puts("Failed to create tenant agreement")
-        IO.inspect(changeset.errors, label: "Changeset Errors")
+      {:error, :already_submitted} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Tenant agreement already submitted")
+         |> assign(:form_submitted, false)}
 
-        error_messages = Enum.map(changeset.errors, fn {field, {message, _}} ->
-          "#{field}: #{message}"
-        end)
+      {:error, changeset} ->
+        error_messages = format_error_messages(changeset)
 
         {:noreply,
          socket
          |> assign(:form, to_form(changeset))
-         |> put_flash(:error, "Failed to save tenant agreement. Errors: #{Enum.join(error_messages, ", ")}")}
+         |> put_flash(:error, "Failed to save tenant agreement. Errors: #{error_messages}")
+         |> assign(:form_submitted, false)}
     end
+  end
+
+  # Helper function to add submission error to changeset if needed
+  defp maybe_add_submission_error(changeset, nil), do: changeset
+  defp maybe_add_submission_error(changeset, %{status: status}) do
+    Ecto.Changeset.add_error(
+      changeset,
+      :tenant_name,
+      "You have already submitted an agreement (Status: #{status})"
+    )
+  end
+
+  # Helper function to format error messages
+  defp format_error_messages(changeset) do
+    Enum.map(changeset.errors, fn {field, {message, _}} ->
+      "#{field}: #{message}"
+    end)
+    |> Enum.join(", ")
+  end
+
+  # Your existing broadcast_admin_notification function
+  defp broadcast_admin_notification(tenant_agreement) do
+    admins = KejaDigital.Backoffice.list_admin_users()
+
+    Enum.each(admins, fn admin ->
+      {:ok, notification} =
+        Notifications.create_notification(%{
+          admin_id: admin.id,
+          title: "New Tenant Agreement Submission",
+          content: "#{tenant_agreement.tenant_name} has submitted a new tenancy agreement for review.",
+          is_read: false,
+          agreement_id: tenant_agreement.id
+        })
+
+      Phoenix.PubSub.broadcast(
+        KejaDigital.PubSub,
+        "admin_notifications:#{admin.id}",
+        {:new_notification, %{
+          id: notification.id,
+          title: notification.title,
+          content: notification.content,
+          tenant_name: tenant_agreement.tenant_name,
+          inserted_at: notification.inserted_at,
+          is_read: false
+        }}
+      )
+    end)
   end
 end

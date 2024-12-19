@@ -167,8 +167,17 @@ def update_tenant_agreement_status(id, status) do
   tenant_agreement
   |> TenantAgreementLive.changeset(%{status: status})
   |> Repo.update()
+  |> case do
+    {:ok, updated_agreement} ->
+      Phoenix.PubSub.broadcast(
+        KejaDigital.PubSub,
+        "admin_notifications",
+        {:updated_tenant_agreement, updated_agreement}
+      )
+      {:ok, updated_agreement}
+     error -> error
+  end
 end
-
   @doc """
   Deletes a tenant_agreement_live.
 

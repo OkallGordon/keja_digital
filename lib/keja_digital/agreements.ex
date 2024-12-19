@@ -62,37 +62,63 @@ end
       {:error, %Ecto.Changeset{}}
 
   """
- def create_tenant_agreement_live(attrs) do
-  # Insert the tenant agreement
-  case %TenantAgreementLive{}
-       |> TenantAgreementLive.changeset(attrs)
-       |> Repo.insert() do
-    {:ok, tenant_agreement} ->
-      # Find all admin users
-      admins = Backoffice.list_admin_users()
+def create_tenant_agreement_live(attrs) do
+  tenant_name = attrs["tenant_name"]
 
-      # Create notifications for each admin
-      Enum.each(admins, fn admin ->
-        Notifications.create_notification(%{
-          title: "New Tenant Agreement Submitted",
-          content: "A new tenant agreement has been submitted by #{tenant_agreement.tenant_name}",
-          is_read: false,
-          user_id: admin.id,
-          tenant_agreement_id: tenant_agreement.id
-        })
-      end)
+  # Check if an existing submitted agreement exists for the same tenant
+  case Repo.get_by(TenantAgreementLive, tenant_name: tenant_name, submitted: true) do
+    nil ->
+      # No duplicate exists; proceed with creating a new tenant agreement
+      case %TenantAgreementLive{}
+           |> TenantAgreementLive.changeset(attrs)
+           |> Repo.insert() do
+        {:ok, tenant_agreement} ->
+          # Find all admin users
+          admins = Backoffice.list_admin_users()
 
-      # Broadcast the new tenant agreement to admin channel
-      Phoenix.PubSub.broadcast(
-        KejaDigital.PubSub,
-        "admin_notifications",
-        {:new_tenant_agreement, tenant_agreement}
-      )
+          # Create notifications for each admin
+          Enum.each(admins, fn admin ->
+            Notifications.create_notification(%{
+              title: "New Tenant Agreement Submitted",
+              content: "A new tenant agreement has been submitted by #{tenant_agreement.tenant_name}",
+              is_read: false,
+              user_id: admin.id,
+              tenant_agreement_id: tenant_agreement.id
+            })
+          end)
 
-      {:ok, tenant_agreement}
+          # Broadcast the new tenant agreement to admin channel
+          Phoenix.PubSub.broadcast(
+            KejaDigital.PubSub,
+            "admin_notifications",
+            {:new_tenant_agreement, tenant_agreement}
+          )
 
-    {:error, changeset} ->
-      {:error, changeset}
+          {:ok, tenant_agreement}
+
+        {:error, changeset} ->
+          {:error, changeset}
+      end
+
+    _existing_agreement ->
+      # Duplicate agreement found; return an error
+      {:error, :already_submitted}
+  end
+end
+
+def get_tenant_agreement_by_name(tenant_name) do
+  Repo.one(
+    from t in TenantAgreementLive,
+    where: t.tenant_name == ^tenant_name
+  )
+end
+
+def check_tenant_submission_status(tenant_name) do
+  case get_tenant_agreement_by_name(tenant_name) do
+    nil ->
+      {:ok, :not_submitted}
+    agreement ->
+      {:ok, agreement.status}
   end
 end
 

@@ -139,6 +139,11 @@ def get_tenant_agreement_by_name(tenant_name) do
   )
 end
 
+def get_tenant_agreement_by_tenant_id(tenant_id) do
+  Repo.get_by(TenantAgreement, tenant_id: tenant_id)
+end
+
+
 def check_tenant_submission_status(tenant_name) do
   case get_tenant_agreement_by_name(tenant_name) do
     nil ->
@@ -174,6 +179,13 @@ def update_tenant_agreement_status(id, status) do
         "admin_notifications",
         {:updated_tenant_agreement, updated_agreement}
       )
+
+      Phoenix.PubSub.broadcast(
+        KejaDigital.PubSub,
+        "tenant_agreement:#{updated_agreement.tenant_id}",
+        {:agreement_status_updated, updated_agreement}
+      )
+
       {:ok, updated_agreement}
      error -> error
   end

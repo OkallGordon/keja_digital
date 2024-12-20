@@ -64,7 +64,7 @@ defmodule KejaDigitalWeb.AdminReviewLive do
                   Reject
                 </button>
                 <.link
-                  navigate={~p"/agreements/#{agreement.id}"}
+                  navigate={~p"/tenant_agreement/#{agreement.id}"}
                   class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                 >
                   View Details

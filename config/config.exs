@@ -61,6 +61,12 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+config :keja_digital, :mpesa,
+  consumer_key: "uKecRxWZbsKCYFwqM7ntYBJnxDivLbzPDsAZnGInVyxg20Tw",
+  consumer_secret: "xJXCZ1lkTxfuiqdZoR076m6FAO6JM1czuXHIfAmoaPAkLVj72oKcA8ZqX8TI0h98",
+  base_url: "https://sandbox.safaricom.co.ke"
+
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

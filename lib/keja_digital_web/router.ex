@@ -78,6 +78,7 @@ defmodule KejaDigitalWeb.Router do
       live "/tenant_agreements/:id/edit", TenantAgreementLive.Index, :edit
       live "/tenant_agreements/:id", TenantAgreementLive.Show, :show
       live "/tenant_agreements/:id/show/edit", TenantAgreementLive.Show, :edit
+      live "/tenant_agreement_status/:tenant_id", TenantAgreementLive
 
 
     end

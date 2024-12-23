@@ -1,33 +1,42 @@
-defmodule KejaDigitalWeb.MpesaWebhookController do
+defmodule KejaDigitalWeb.MpesaCallbackController do
   use KejaDigitalWeb, :controller
+
   alias KejaDigital.Payments
 
-  def handle_callback(conn, params) do
-    with {:ok, payment_data} <- extract_payment_data(params),
-         {:ok, payment} <- Payments.create_mpesa_payment(payment_data) do
+  def confirmation(conn, %{"Body" => %{"stkCallback" => %{"CallbackMetadata" => metadata}}}) do
+    transaction_id = get_metadata_value(metadata, "MpesaReceiptNumber")
+    amount = get_metadata_value(metadata, "Amount")
+    phone_number = get_metadata_value(metadata, "PhoneNumber")
+    paid_at = get_metadata_value(metadata, "TransactionDate")
 
-      KejaDigitalWeb.Endpoint.broadcast("payments", "new_payment", payment)
+    # Save payment record
+    case Payments.create_mpesa_payment(%{
+           transaction_id: transaction_id,
+           amount: Decimal.new(amount),
+           phone_number: phone_number,
+           till_number: "4154742",
+           status: "completed",
+           paid_at: parse_datetime(paid_at)
+         }) do
+      {:ok, _payment} ->
+        send_resp(conn, 200, "Payment received.")
 
-      conn
-      |> put_status(:ok)
-      |> json(%{status: "success"})
-    else
-      {:error, reason} ->
-        conn
-        |> put_status(:unprocessable_entity)
-        |> json(%{error: reason})
+      {:error, _changeset} ->
+        send_resp(conn, 400, "Failed to record payment.")
     end
   end
 
-  defp extract_payment_data(params) do
-    # Transform Safaricom webhook data into our payment format
-    # You'll need to adjust this based on actual webhook payload
-    {:ok, %{
-      transaction_id: params["TransID"],
-      phone_number: params["MSISDN"],
-      amount: params["TransAmount"],
-      till_number: "4154742",
-      status: "completed"
-    }}
+  defp get_metadata_value(metadata, key) do
+    Enum.find_value(metadata, fn %{"Name" => name, "Value" => value} ->
+      if name == key, do: value
+    end)
+  end
+
+  defp parse_datetime(datetime_string) do
+    DateTime.from_iso8601(datetime_string)
+    |> case do
+      {:ok, dt, _} -> dt
+      _ -> DateTime.utc_now()
+    end
   end
 end

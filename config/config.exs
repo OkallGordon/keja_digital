@@ -62,8 +62,8 @@ config :logger, :console,
 config :phoenix, :json_library, Jason
 
 config :keja_digital, :mpesa,
-  consumer_key: "uKecRxWZbsKCYFwqM7ntYBJnxDivLbzPDsAZnGInVyxg20Tw",
-  consumer_secret: "xJXCZ1lkTxfuiqdZoR076m6FAO6JM1czuXHIfAmoaPAkLVj72oKcA8ZqX8TI0h98",
+  consumer_key: "hoi93y89r893u1ihf9fhqhhqyfyfqfjf",
+  consumer_secret: "dbnwnbwhhwh36i322gdwbjkdjwwjkwd",
   base_url: "https://sandbox.safaricom.co.ke"
 
 

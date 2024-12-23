@@ -26,6 +26,10 @@ defmodule KejaDigitalWeb.Router do
     get "/", PageController, :home
   end
 
+  scope "/mpesa", KejaDigitalWeb do
+    post "/confirmation", MpesaCallbackController, :confirmation
+  end
+
   # Other scopes may use custom stacks.
   # scope "/api", KejaDigitalWeb do
   #   pipe_through :api
@@ -79,6 +83,8 @@ defmodule KejaDigitalWeb.Router do
       live "/tenant_agreements/:id", TenantAgreementLive.Show, :show
       live "/tenant_agreements/:id/show/edit", TenantAgreementLive.Show, :edit
       live "/tenant_agreement_status/:tenant_id", TenantAgreementLive
+      live "/payments/:phone_number", TenantPaymentsLive
+
 
 
     end

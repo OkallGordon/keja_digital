@@ -42,7 +42,7 @@ defmodule KejaDigitalWeb.PaymentLive do
        update(socket, :payments, fn payments ->
          [payment | payments]
          |> Enum.sort_by(& &1.payment_date, {:desc, DateTime})
-         |> Enum.take(50)
+         |> Enum.take(100000)
        end)}
     else
       {:noreply, socket}

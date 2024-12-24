@@ -54,16 +54,17 @@ defmodule KejaDigital.Payments do
 def list_recent_payments do
   MpesaPayment
   |> order_by([p], desc: p.inserted_at)
-  |> limit(50)  # Adjust limit as needed
+  |> limit(100000)  # Adjust limit as needed
   |> Repo.all()
 end
 
 def list_all_payments do
-  Payment
-  |> order_by([p], desc: p.payment_date)
-  |> limit(50)  # Limit to recent payments
+  MpesaPayment
+  |> order_by([p], desc: p.inserted_at)
+  |> limit(100000)  # Limit to recent payments
   |> Repo.all()
 end
+
   @doc """
   Gets a single mpesa_payment.
 

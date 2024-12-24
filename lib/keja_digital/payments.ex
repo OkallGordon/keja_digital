@@ -8,6 +8,35 @@ defmodule KejaDigital.Payments do
 
   alias KejaDigital.Payments.MpesaPayment
 
+  def create_payment(attrs) do
+    %MpesaPayment{}
+    |> MpesaPayment.changeset(attrs)
+    |> Repo.insert()
+    |> broadcast_payment()
+  end
+
+  def get_tenant_payments(tenant_id) do
+    MpesaPayment
+    |> where([p], p.tenant_id == ^tenant_id)
+    |> order_by([p], desc: p.payment_date)
+    |> Repo.all()
+  end
+
+  def get_payment(transaction_id) do
+    Repo.get_by(MpesaPayment, transaction_id: transaction_id)
+  end
+
+  defp broadcast_payment({:ok, payment} = result) do
+    Phoenix.PubSub.broadcast(
+      KejaDigital.PubSub,
+      "payments:#{payment.tenant_id}",
+      {:new_payment, payment}
+    )
+    result
+  end
+
+  defp broadcast_payment(error), do: error
+
   @doc """
   Returns the list of mpesa_payments.
 
@@ -26,6 +55,13 @@ def list_recent_payments do
   MpesaPayment
   |> order_by([p], desc: p.inserted_at)
   |> limit(50)  # Adjust limit as needed
+  |> Repo.all()
+end
+
+def list_all_payments do
+  Payment
+  |> order_by([p], desc: p.payment_date)
+  |> limit(50)  # Limit to recent payments
   |> Repo.all()
 end
   @doc """
@@ -56,11 +92,26 @@ end
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_mpesa_payment(attrs \\ %{}) do
-    %MpesaPayment{}
-    |> MpesaPayment.changeset(attrs)
-    |> Repo.insert()
+ def create_mpesa_payment(attrs \\ %{}) do
+  %MpesaPayment{}
+  |> MpesaPayment.changeset(attrs)
+  |> Repo.insert()
+  |> case do
+    {:ok, payment} ->
+      # Broadcast payment received event
+      Phoenix.PubSub.broadcast(
+        KejaDigital.PubSub,
+        "payments:#{payment.phone_number}",
+        {:payment_received, payment}
+      )
+
+      {:ok, payment}
+
+    {:error, changeset} ->
+      {:error, changeset}
   end
+end
+
 
   @doc """
   Updates a mpesa_payment.

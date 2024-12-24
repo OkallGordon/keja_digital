@@ -28,10 +28,8 @@ defmodule KejaDigitalWeb.PaymentLive do
     {:ok,
      socket
      |> assign(:tenant_id, params["tenant_id"])
-     |> assign(:loading, false)
-     |> assign(:streams, %{
-       payments: Phoenix.LiveView.stream(socket, :payments, payments)
-     })}
+     |> assign(:payments, payments)
+     |> assign(:loading, false)}
   end
 
   @impl true
@@ -40,7 +38,12 @@ defmodule KejaDigitalWeb.PaymentLive do
 
     # Only add the payment if it matches the current tenant_id filter (if any)
     if should_add_payment?(payment, socket.assigns.tenant_id) do
-      {:noreply, stream_insert(socket, :payments, payment)}
+      {:noreply,
+       update(socket, :payments, fn payments ->
+         [payment | payments]
+         |> Enum.sort_by(& &1.payment_date, {:desc, DateTime})
+         |> Enum.take(50)
+       end)}
     else
       {:noreply, socket}
     end
@@ -64,32 +67,31 @@ defmodule KejaDigitalWeb.PaymentLive do
           </div>
         <% end %>
 
-        <div id="payments-list">
-          <ul>
-            <%= for {id, payment} <- @streams.payments do %>
-              <li id={"payment-#{id}"} class="bg-white shadow rounded-lg p-4 mb-4 animate-fade-in">
-                <div class="flex justify-between">
-                  <div>
-                    <p class="text-lg font-semibold">KES <%= payment.amount %></p>
-                    <p class="text-gray-600">Transaction: <%= payment.transaction_id %></p>
-                    <p class="text-gray-600">Phone: <%= payment.phone_number %></p>
-                  </div>
-                  <div class="text-right">
-                    <p class="text-gray-600">
-                      <%= Calendar.strftime(payment.payment_date, "%B %d, %Y at %H:%M") %>
-                    </p>
-                    <span class={[
-                      "inline-block px-3 py-1 rounded-full text-sm",
-                      payment.payment_status == "completed" && "bg-green-100 text-green-800",
-                      payment.payment_status != "completed" && "bg-yellow-100 text-yellow-800"
-                    ]}>
-                      <%= payment.payment_status %>
-                    </span>
-                  </div>
+        <div id="payments-list" phx-update="prepend">
+          <%= for payment <- @payments do %>
+            <div id={"payment-#{payment.transaction_id}"}
+                 class="bg-white shadow rounded-lg p-4 mb-4 animate-fade-in">
+              <div class="flex justify-between">
+                <div>
+                  <p class="text-lg font-semibold">KES <%= payment.amount %></p>
+                  <p class="text-gray-600">Transaction: <%= payment.transaction_id %></p>
+                  <p class="text-gray-600">Phone: <%= payment.phone_number %></p>
                 </div>
-              </li>
-            <% end %>
-          </ul>
+                <div class="text-right">
+                  <p class="text-gray-600">
+                    <%= Calendar.strftime(payment.payment_date, "%B %d, %Y at %H:%M") %>
+                  </p>
+                  <span class={[
+                    "inline-block px-3 py-1 rounded-full text-sm",
+                    payment.payment_status == "completed" && "bg-green-100 text-green-800",
+                    payment.payment_status != "completed" && "bg-yellow-100 text-yellow-800"
+                  ]}>
+                    <%= payment.payment_status %>
+                  </span>
+                </div>
+              </div>
+            </div>
+          <% end %>
         </div>
       </div>
     </div>

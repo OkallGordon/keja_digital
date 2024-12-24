@@ -1,6 +1,7 @@
 defmodule KejaDigitalWeb.MpesaWebhookController do
   use KejaDigitalWeb, :controller
   alias KejaDigital.Payments
+  require Logger
 
   def handle_callback(conn, params) do
     with {:ok, payment_params} <- extract_payment_params(params),

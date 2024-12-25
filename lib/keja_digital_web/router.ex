@@ -82,8 +82,6 @@ defmodule KejaDigitalWeb.Router do
 
       live "/tenant/dashboard", TenantDashboardLive
 
-
-
     end
   end
 

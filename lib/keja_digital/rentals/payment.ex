@@ -8,16 +8,15 @@ defmodule KejaDigital.Rentals.Payment do
     field :status, :string, default: "pending"
     field :days_overdue, :integer, virtual: true
     field :door_number, :string
-
-    belongs_to :users, KejaDigital.Store.User
-    belongs_to :unit, KejaDigital.Store.DoorNumber
+    field :user_id, :integer
+    field :unit_id, :integer
 
     timestamps()
   end
 
   def changeset(payment, attrs) do
     payment
-    |> cast(attrs, [:amount, :due_date, :status, :user_id, :door_number])
+    |> cast(attrs, [:amount, :due_date, :status, :user_id, :door_number, :unit_id])
     |> validate_required([:amount, :due_date, :status, :user_id, :door_number])
     |> validate_number(:amount, greater_than: 0)
     |> assoc_constraint(:user_id)

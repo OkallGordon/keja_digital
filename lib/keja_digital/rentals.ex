@@ -3,15 +3,14 @@ defmodule KejaDigital.Rentals do
   alias KejaDigital.Repo
   alias KejaDigital.Rentals.Payment
 
-  def get_user_overdue_payments(user_id) do
+  def get_user_overdue_payments(user_id, door_number) do
     today = Date.utc_today()
 
     from(p in Payment,
-      where: p.user_id == ^user_id and p.due_date < ^today and p.status == "pending",  # Replace tenant_id with user_id
-      join: u in assoc(p, :unit),
-      preload: [unit: u],
+      where: p.user_id == ^user_id and p.due_date < ^today and p.status == "pending", # Direct comparison
+      where: p.door_number == ^door_number,  # Replace `unit` with `door_number`
       select_merge: %{
-        days_overdue: fragment("EXTRACT(DAY FROM ? - ?)", ^today, p.due_date)
+        days_overdue: fragment("EXTRACT(DAY FROM (? - ?))", p.due_date, ^today) # Fix to subtract dates correctly
       }
     )
     |> Repo.all()

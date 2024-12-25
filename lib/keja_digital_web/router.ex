@@ -80,6 +80,8 @@ defmodule KejaDigitalWeb.Router do
       live "/tenant_agreements/:id/show/edit", TenantAgreementLive.Show, :edit
       live "/tenant_agreement_status/:tenant_id", TenantAgreementLive
 
+      live "/tenant/dashboard", TenantDashboardLive
+
 
 
     end

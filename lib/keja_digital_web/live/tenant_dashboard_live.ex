@@ -3,17 +3,22 @@ defmodule KejaDigitalWeb.TenantDashboardLive do
   alias KejaDigital.Rentals
 
   @impl true
-  def mount(_params, %{"tenant_id" => tenant_id} = _session, socket) do
+  def mount(_params, %{"user_token" => _token} = _session, socket) do
+    tenant_id = socket.assigns.current_user.id
+
+    # Fetch overdue payments
+    overdue_payments = Rentals.get_tenant_overdue_payments(tenant_id)
+
     if connected?(socket) do
       Rentals.subscribe_to_tenant_payments(tenant_id)
     end
 
-    overdue_payments = Rentals.get_tenant_overdue_payments(tenant_id)
-
-    {:ok, assign(socket,
-      tenant_id: tenant_id,
-      overdue_payments: overdue_payments
-    )}
+    {:ok,
+     assign(socket,
+       tenant_id: tenant_id,
+       reminders: [],
+       overdue_payments: overdue_payments
+     )}
   end
 
   @impl true

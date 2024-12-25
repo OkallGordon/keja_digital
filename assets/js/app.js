@@ -42,3 +42,8 @@ liveSocket.connect()
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
 
+
+window.addEventListener("phx:play-notification-sound", () => {
+  document.getElementById("notification-sound").play();
+});
+

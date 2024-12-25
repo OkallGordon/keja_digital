@@ -35,6 +35,7 @@ defmodule KejaDigital.Store.User do
     field :photo, :string
     field :passport, :string
     field :door_number, :string
+    field :overdue_payments, :integer, virtual: true
 
     timestamps(type: :utc_datetime)
   end

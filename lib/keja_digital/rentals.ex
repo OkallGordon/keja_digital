@@ -3,11 +3,11 @@ defmodule KejaDigital.Rentals do
   alias KejaDigital.Repo
   alias KejaDigital.Rentals.Payment
 
-  def get_tenant_overdue_payments(tenant_id) do
+  def get_user_overdue_payments(user_id) do
     today = Date.utc_today()
 
     from(p in Payment,
-      where: p.tenant_id == ^tenant_id and p.due_date < ^today and p.status == "pending",
+      where: p.user_id == ^user_id and p.due_date < ^today and p.status == "pending",  # Replace tenant_id with user_id
       join: u in assoc(p, :unit),
       preload: [unit: u],
       select_merge: %{
@@ -17,14 +17,14 @@ defmodule KejaDigital.Rentals do
     |> Repo.all()
   end
 
-  def subscribe_to_tenant_payments(tenant_id) do
-    Phoenix.PubSub.subscribe(KejaDigital.PubSub, "tenant_payments:#{tenant_id}")
+  def subscribe_to_user_payments(user_id) do
+    Phoenix.PubSub.subscribe(KejaDigital.PubSub, "user_payments:#{user_id}")
   end
 
-  def broadcast_tenant_reminder(payment) do
+  def broadcast_user_reminder(payment) do
     Phoenix.PubSub.broadcast(
       KejaDigital.PubSub,
-      "tenant_payments:#{payment.tenant_id}",
+      "user_payments:#{payment.user_id}",
       {:payment_reminder, payment}
     )
   end

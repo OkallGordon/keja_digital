@@ -6,8 +6,9 @@ defmodule KejaDigital.Payments.Payment do
     field :amount, :decimal
     field :due_date, :date
     field :status, :string, default: "pending"
-    field :days_overdue, :integer, virtual: true
     field :door_number, :string
+    field :days_until_due, :integer, virtual: true
+    field :days_overdue, :integer, virtual: true
     field :user_id, :integer
     field :unit_id, :integer
 

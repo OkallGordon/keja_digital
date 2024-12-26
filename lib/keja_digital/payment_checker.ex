@@ -1,7 +1,6 @@
 defmodule KejaDigital.PaymentChecker do
   use GenServer
   alias KejaDigital.Payments
-  #alias KejaDigital.Store
 
   def start_link(_opts) do
     GenServer.start_link(__MODULE__, %{})
@@ -19,16 +18,19 @@ defmodule KejaDigital.PaymentChecker do
   end
 
   defp schedule_check do
-    # Check every 6 hours
-    Process.send_after(self(), :check_payments, :timer.hours(6))
+    # Check every 12 hours
+    Process.send_after(self(), :check_payments, :timer.hours(1))
   end
 
   defp check_and_notify do
-    # Query all users with pending payments
-    KejaDigital.Store.list_users()  # Adjust this to your actual function name
+    # Get all users and their payments
+    KejaDigital.Store.list_users()
     |> Enum.each(fn user ->
       Payments.get_user_payments(user.id)
-      |> Enum.each(&Payments.broadcast_payment_update/1)
+      |> Enum.each(fn payment ->
+        # Just broadcast updates for the LiveView to handle
+        Payments.broadcast_payment_update(payment)
+      end)
     end)
   end
 end

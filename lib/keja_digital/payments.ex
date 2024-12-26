@@ -8,6 +8,8 @@ defmodule KejaDigital.Payments do
 
   alias KejaDigital.Payments.MpesaPayment
 
+  alias KejaDigital.Payments.Payment
+
   def create_payment(attrs) do
     %MpesaPayment{}
     |> MpesaPayment.changeset(attrs)
@@ -159,5 +161,60 @@ end
   """
   def change_mpesa_payment(%MpesaPayment{} = mpesa_payment, attrs \\ %{}) do
     MpesaPayment.changeset(mpesa_payment, attrs)
+  end
+
+
+  #from the payment checker
+  def get_user_payments(user_id) do
+    from(p in Payment,
+      where: p.user_id == ^user_id and p.status == "pending",
+      select_merge: %{
+        days_until_due:
+          fragment(
+            "CASE WHEN ? > CURRENT_DATE THEN (? - CURRENT_DATE) END",
+            p.due_date,
+            p.due_date
+          ),
+        days_overdue:
+          fragment(
+            "CASE WHEN ? < CURRENT_DATE THEN (CURRENT_DATE - ?) END",
+            p.due_date,
+            p.due_date
+          )
+      }
+    )
+    |> Repo.all()
+  end
+  def get_payment_status(payment) do
+    cond do
+      payment.days_overdue != nil ->
+        cond do
+          payment.days_overdue > 30 -> :critical
+          payment.days_overdue > 14 -> :warning
+          payment.days_overdue > 0 -> :overdue
+          true -> :pending
+        end
+
+      payment.days_until_due != nil ->
+        cond do
+          payment.days_until_due <= 5 -> :upcoming
+          true -> :pending
+        end
+
+      true ->
+        :pending
+    end
+  end
+
+  def subscribe_to_payment_updates(user_id) do
+    Phoenix.PubSub.subscribe(KejaDigital.PubSub, "user_payments:#{user_id}")
+  end
+
+  def broadcast_payment_update(payment) do
+    Phoenix.PubSub.broadcast(
+      KejaDigital.PubSub,
+      "user_payments:#{payment.user_id}",
+      {:payment_update, payment}
+    )
   end
 end

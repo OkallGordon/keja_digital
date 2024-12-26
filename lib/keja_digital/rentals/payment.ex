@@ -1,4 +1,4 @@
-defmodule KejaDigital.Rentals.Payment do
+defmodule KejaDigital.Payments.Payment do
   use Ecto.Schema
   import Ecto.Changeset
 

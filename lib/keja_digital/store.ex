@@ -10,9 +10,12 @@ defmodule KejaDigital.Store do
 
   def list_available_door_numbers do
     Repo.all(from d in DoorNumber, where: d.occupied == false)
-
   end
 
+
+  def list_users do
+    Repo.all(User)
+  end
 
   def get_tenant_by_phone(phone_number) do
     Repo.get_by(Tenant, phone_number: phone_number)

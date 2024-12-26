@@ -17,7 +17,8 @@ defmodule KejaDigital.Application do
       # Start a worker by calling: KejaDigital.Worker.start_link(arg)
       # {KejaDigital.Worker, arg},
       # Start to serve requests, typically the last entry
-      KejaDigitalWeb.Endpoint
+      KejaDigitalWeb.Endpoint,
+      KejaDigital.PaymentChecker
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

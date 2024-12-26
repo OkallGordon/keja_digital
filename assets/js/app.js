@@ -47,3 +47,10 @@ window.addEventListener("phx:play-notification-sound", () => {
   document.getElementById("notification-sound").play();
 });
 
+window.addEventListener("phx:play-notification", (e) => {
+  const type = e.detail.type;
+  const audio = document.getElementById(`notification-${type}`);
+  if (audio) {
+    audio.play();
+  }
+});

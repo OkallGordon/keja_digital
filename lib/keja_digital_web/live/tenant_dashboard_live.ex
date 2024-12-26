@@ -11,6 +11,16 @@ defmodule KejaDigitalWeb.UserPaymentLive do
     end
 
     payments = Payments.get_user_payments(user_id)
+
+    # Show initial notifications for any overdue or upcoming payments
+    socket =
+      Enum.reduce(payments, socket, fn payment, acc ->
+        push_event(acc, "show-notification", %{
+          title: notification_title(Payments.get_payment_status(payment)),
+          message: payment_message(payment)
+        })
+      end)
+
     {:ok, assign(socket, user_id: user_id, payments: payments)}
   end
 
@@ -18,12 +28,24 @@ defmodule KejaDigitalWeb.UserPaymentLive do
   def handle_info({:payment_update, payment}, socket) do
     status = Payments.get_payment_status(payment)
 
-    {:noreply,
-     socket
-     |> push_event("play-notification", %{type: Atom.to_string(status)})
+    {:noreply, socket
+     |> push_event("show-notification", %{
+       title: notification_title(status),
+       message: payment_message(payment)
+     })
      |> update(:payments, fn payments ->
        [payment | Enum.reject(payments, &(&1.id == payment.id))]
      end)}
+  end
+
+  defp payment_message(payment) do
+    status = Payments.get_payment_status(payment)
+    case status do
+      :upcoming ->
+        "Your rent payment of KES #{payment.amount} for Door #{payment.door_number} is due in #{payment.days_until_due} days."
+      _ ->
+        "Your rent payment of KES #{payment.amount} for Door #{payment.door_number} is #{payment.days_overdue} days overdue."
+    end
   end
 
   @impl true
@@ -40,9 +62,9 @@ defmodule KejaDigitalWeb.UserPaymentLive do
                 <div class="mt-1">
                   <p>
                     <%= if status == :upcoming do %>
-                      Your rent payment of KES <%= payment.amount %> for Door <%= payment.doornumber %> is due in <%= payment.days_until_due %> days.
+                      Your rent payment of KES <%= payment.amount %> for <%= payment.door_number %> is due in <%= payment.days_until_due %> days.
                     <% else %>
-                      Your rent payment of KES <%= payment.amount %> for Door <%= payment.doornumber %> is <%= payment.days_overdue %> days overdue.
+                      Your rent payment of KES <%= payment.amount %> for <%= payment.door_number %> is <%= payment.days_overdue %> days overdue.
                     <% end %>
                   </p>
                   <%= if status in [:warning, :critical] do %>

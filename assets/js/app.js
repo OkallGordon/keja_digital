@@ -54,3 +54,32 @@ window.addEventListener("phx:play-notification", (e) => {
     audio.play();
   }
 });
+
+// Add this to your existing app.js
+window.addEventListener("phx:show-notification", (e) => {
+  const { title, message } = e.detail;
+  
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.className = 'fixed top-4 right-4 bg-white shadow-lg rounded-lg p-4 max-w-sm w-full transition-all duration-500 transform translate-x-full';
+  notification.innerHTML = `
+    <h4 class="font-bold text-lg">${title}</h4>
+    <p class="text-gray-600">${message}</p>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Animate in
+  setTimeout(() => {
+    notification.classList.remove('translate-x-full');
+  }, 100);
+  
+  // Remove after 5 seconds
+  setTimeout(() => {
+    notification.classList.add('translate-x-full');
+    setTimeout(() => {
+      notification.remove();
+    }, 500);
+  }, 5000);
+});
+

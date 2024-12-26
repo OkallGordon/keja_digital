@@ -25,6 +25,13 @@ defmodule KejaDigitalWeb.Endpoint do
     gzip: false,
     only: KejaDigitalWeb.static_paths()
 
+  plug Plug.Static,
+  at: "/",
+  from: :keja_digital,
+  gzip: false,
+  only: ~w(assets sounds images css js favicon.ico robots.txt)
+
+
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
   if code_reloading? do

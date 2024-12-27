@@ -81,6 +81,7 @@ defmodule KejaDigitalWeb.Router do
       live "/tenant_agreement_status/:tenant_id", TenantAgreementLive
 
       live "/tenant/reminders", UserPaymentLive
+      live "/payments", MpesaPaymentLive
 
     end
   end
@@ -126,7 +127,7 @@ defmodule KejaDigitalWeb.Router do
       live "/tenant_agreement/:id", AdminShow, :show
       live "/agreements", AdminReviewLive
       live "/agreements/:id", AgreementDetailLive
-      live "/payments", PaymentLive
+
 
       live "/payments/:tenant_id", PaymentLive
     end

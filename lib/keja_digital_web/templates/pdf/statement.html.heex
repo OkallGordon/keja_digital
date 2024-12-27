@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
+    th { background-color: #f8f9fa; }
+  </style>
+</head>
+<body>
+  <h1>Rent Payment Statement</h1>
+  <p>Generated on: <%= Calendar.strftime(DateTime.utc_now(), "%B %d, %Y") %></p>
+  
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Transaction ID</th>
+        <th>Amount</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= for payment <- @payments do %>
+        <tr>
+          <td><%= Calendar.strftime(payment.paid_at, "%B %d, %Y") %></td>
+          <td><%= payment.transaction_id %></td>
+          <td>KES <%= Number.Currency.number_to_currency(payment.amount) %></td>
+          <td><%= String.capitalize(payment.status) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</body>
+</html>

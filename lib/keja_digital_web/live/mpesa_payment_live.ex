@@ -114,6 +114,7 @@ defmodule KejaDigitalWeb.MpesaPaymentLive do
       {:error, reason} -> {:error, reason}
     end
   end
+
   defp status_color_class(status) do
     base_class = "px-2 py-1 rounded-full text-sm font-medium"
 
@@ -129,12 +130,12 @@ defmodule KejaDigitalWeb.MpesaPaymentLive do
 
   def render(assigns) do
     ~H"""
-    <div class="max-w-6xl mx-auto py-10 px-1">
-      <div class="grid gap-10 md:grid-cols-[500px,1fr]">
+    <div class="max-w-6xl mx-auto py-8 px-4">
+      <div class="grid gap-8 md:grid-cols-[400px,1fr]">
         <div class="bg-white shadow rounded-lg p-6">
           <h2 class="text-2xl font-bold mb-4">Make Payment</h2>
 
-          <div class="bg-blue-50 border-l-4 border-blue-700 p-4 mb-6">
+          <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
             <p class="text-blue-700 font-medium">Business Number: <%= @till_number %></p>
             <p class="text-sm text-blue-600 mt-1">Save this number for future payments</p>
           </div>
@@ -143,9 +144,9 @@ defmodule KejaDigitalWeb.MpesaPaymentLive do
             <h3 class="font-semibold mb-3">Payment Steps</h3>
             <ol class="list-decimal list-inside space-y-3 text-gray-600">
               <li>Open M-PESA on your phone</li>
-              <li>Select <span class="font-medium">Buy Goods and Services</span> option</li>
-              <li>Enter The Till No: <span class="font-medium"><%= @till_number %></span></li>
-              <li>Enter payment amount</li>
+              <li>Select <span class="font-medium">Buy Goods And Services</span> option</li>
+              <li>Enter The Till Number: <span class="font-medium"><%= @till_number %></span></li>
+              <li>Enter Payment/Rent amount</li>
               <li>Confirm with your M-PESA PIN</li>
             </ol>
           </div>

@@ -83,3 +83,16 @@ window.addEventListener("phx:show-notification", (e) => {
   }, 5000);
 });
 
+window.addEventListener("phx:download-file", (event) => {
+  const { data, filename, content_type } = event.detail;
+  const blob = new Blob([data], { type: content_type });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});

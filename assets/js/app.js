@@ -85,14 +85,36 @@ window.addEventListener("phx:show-notification", (e) => {
 
 window.addEventListener("phx:download-file", (event) => {
   const { data, filename, content_type } = event.detail;
-  const blob = new Blob([data], { type: content_type });
-  const url = URL.createObjectURL(blob);
 
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  if (!data || !filename || !content_type) {
+    console.error("Missing required download parameters");
+    return;
+  }
+
+  try {
+    const blob = new Blob([data], { type: content_type });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    
+    link.href = url;
+    link.download = filename;
+    link.style.display = "none";
+    
+    document.body.appendChild(link);
+    link.click();
+    
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 100);
+    
+  } catch (error) {
+    console.error("Download failed:", error);
+    // Optionally trigger a Phoenix event to notify the server
+    window.dispatchEvent(
+      new CustomEvent("phx:download-error", { 
+        detail: { error: error.message } 
+      })
+    );
+  }
 });

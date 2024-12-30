@@ -15,11 +15,19 @@ defmodule KejaDigital.Backoffice do
     |> Repo.all()
   end
 
+  def list_users do
+    Repo.all(User)
+  end
+
   # Optional: If you want to get users with specific admin permissions
   def list_admin_users_with_permission(permission) do
     from(a in Admin,
       where: a.role == "admin" and a.permissions == ^permission)
     |> Repo.all()
+  end
+
+  def delete_admin(%Admin{} = admins) do
+    Repo.delete(admins)
   end
 
   ## Database getters

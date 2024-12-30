@@ -34,6 +34,10 @@ defmodule KejaDigital.Store do
       nil
 
   """
+  def delete_user(%User{} = user) do
+    Repo.delete(user)
+  end
+
   def get_user_by_email(email) when is_binary(email) do
     Repo.get_by(User, email: email)
   end

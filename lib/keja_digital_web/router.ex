@@ -1,4 +1,5 @@
 defmodule KejaDigitalWeb.Router do
+  #alias KejaDigitalWeb.AdminDashboardLive
   use KejaDigitalWeb, :router
 
   import KejaDigitalWeb.AdminAuth
@@ -72,6 +73,7 @@ defmodule KejaDigitalWeb.Router do
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
 
+
       live "/tenant/profile", UserProfileLive
       live "/tenant_agreements", TenantAgreementLive.Index, :index
       live "/tenant_agreements/new", TenantAgreementLive.Index, :new
@@ -119,14 +121,16 @@ defmodule KejaDigitalWeb.Router do
 
     live_session :require_authenticated_admin,
       on_mount: [{KejaDigitalWeb.AdminAuth, :ensure_authenticated}] do
+
       live "/admins/settings", AdminSettingsLive, :edit
       live "/admins/settings/confirm_email/:token", AdminSettingsLive, :confirm_email
 
       live "/notifications", NotificationsLive, :show
-      live "/dashboard", DashboardLive
+      live "/agreement/status", AgreementStatusLive
       live "/tenant_agreement/:id", AdminShow, :show
       live "/agreements", AdminReviewLive
       live "/agreements/:id", AgreementDetailLive
+      live "/dashboard", AdminDashboardLive
 
 
       live "/payments/:tenant_id", PaymentLive

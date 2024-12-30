@@ -1,6 +1,7 @@
 defmodule KejaDigitalWeb.MpesaPaymentLive do
   use KejaDigitalWeb, :live_view
   alias KejaDigital.Payments.MpesaPayment
+  alias KejaDigital.Services.PDFGenerator
   import Ecto.Query, except: [update: 2, update: 3]
 
   def mount(_params, session, socket) do
@@ -30,37 +31,37 @@ defmodule KejaDigitalWeb.MpesaPaymentLive do
          |> assign(:payments, list_payments(socket.assigns.tenant_id, start_date, end_date))}
 
       _ ->
-        {:noreply, socket} # Handle invalid or missing dates
-    end
-  end
-
-  def handle_event("download-statement", _params, socket) do
-    payments = list_payments(socket.assigns.tenant_id, socket.assigns.start_date, socket.assigns.end_date)
-
-    case generate_pdf_statement(payments) do
-      {:ok, statement_data} ->
-        filename = "rent_statement_#{Date.to_string(socket.assigns.start_date)}_#{Date.to_string(socket.assigns.end_date)}.pdf"
-
-        {:noreply,
-         socket
-         |> push_event("download-file", %{
-           data: statement_data,
-           filename: filename,
-           content_type: "application/pdf"
-         })}
-
-      {:error, _reason} ->
         {:noreply, socket}
     end
   end
+
+def handle_event("download-statement", _params, socket) do
+  payments = list_payments(socket.assigns.tenant_id, socket.assigns.start_date, socket.assigns.end_date)
+
+  case PDFGenerator.generate_statement(payments) do
+    {:ok, statement_data} ->
+      filename = "rent_statement_#{Date.to_string(socket.assigns.start_date)}_#{Date.to_string(socket.assigns.end_date)}.pdf"
+
+      {:noreply,
+       socket
+       |> push_event("download-file", %{
+         data: Base.encode64(statement_data),  # Encode the binary data as base64
+         filename: filename,
+         content_type: "application/pdf"
+       })}
+
+    {:error, _reason} ->
+      {:noreply,
+       socket
+       |> put_flash(:error, "Failed to generate PDF statement")}
+  end
+end
 
   def handle_info({:payment_made, payment}, socket) do
     {:noreply, Phoenix.Component.update(socket, :payments, &[payment | &1])}
   end
 
   defp list_payments(tenant_id, start_date \\ nil, end_date \\ nil) do
-    IO.inspect({tenant_id, start_date, end_date}, label: "List Payments Params")
-
     if is_nil(tenant_id) do
       []
     else
@@ -92,27 +93,6 @@ defmodule KejaDigitalWeb.MpesaPaymentLive do
     from(p in query,
       where: p.paid_at >= ^start_datetime and p.paid_at <= ^end_datetime
     )
-  end
-
-  defp generate_pdf_statement(payments) do
-    html = Phoenix.Template.render_to_string(
-      KejaDigitalWeb.PDFView,
-      "statement.html",
-      "html",
-      payments: payments
-    )
-
-    PdfGenerator.generate(html, page_size: "A4")
-    |> case do
-      {:ok, path} ->
-        File.read(path)
-        |> case do
-          {:ok, binary} -> {:ok, binary}
-          {:error, reason} -> {:error, reason}
-        end
-
-      {:error, reason} -> {:error, reason}
-    end
   end
 
   defp status_color_class(status) do
@@ -178,9 +158,11 @@ defmodule KejaDigitalWeb.MpesaPaymentLive do
                 </div>
               </form>
 
-              <button phx-click="download-statement" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
-                Download Statement
-              </button>
+              <div id="download-container" phx-hook="DownloadFile">
+                <button phx-click="download-statement" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
+                  Download Statement
+                </button>
+             </div>
             </div>
           </div>
 

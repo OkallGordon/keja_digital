@@ -20,6 +20,22 @@ defmodule KejaDigital.Store do
   def get_tenant_by_phone(phone_number) do
     Repo.get_by(Tenant, phone_number: phone_number)
   end
+
+  @doc """
+  Gets a user by phone number.
+  Returns nil if the user is not found.
+  """
+  def get_user_by_phone(phone) do
+    Repo.get_by(User, phone_number: phone)
+  end
+
+  @doc """
+  Gets a user by door number.
+  Returns nil if the user is not found.
+  """
+  def get_user_by_door_number(door_number) do
+    Repo.get_by(User, door_number: door_number)
+  end
   ## Database getters
 
   @doc """

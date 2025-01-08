@@ -27,6 +27,11 @@ defmodule KejaDigitalWeb.Router do
     get "/", PageController, :home
   end
 
+  scope "/api", KejaDigitalWeb do
+    pipe_through :api
+    post "/mpesa/callback", MpesaWebhookController, :callback
+  end
+
   # Other scopes may use custom stacks.
   # scope "/api", KejaDigitalWeb do
   #   pipe_through :api

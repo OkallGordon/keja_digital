@@ -233,4 +233,16 @@ end
   def get_user_by_door_number(door_number) do
     Repo.get_by(User, door_number: door_number)
   end
+
+  def search_payments(search, status) do
+    Payments
+    |> where([p], ilike(p.transaction_id, ^"%#{search}%") or ilike(p.phone_number, ^"%#{search}%"))
+    |> filter_by_status(status)
+    |> Repo.all()
+  end
+
+  def filter_by_status(query, "all"), do: query
+  def filter_by_status(query, status) do
+    where(query, [p], p.status == ^status)
+  end
 end

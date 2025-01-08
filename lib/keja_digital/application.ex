@@ -18,7 +18,8 @@ defmodule KejaDigital.Application do
       # {KejaDigital.Worker, arg},
       # Start to serve requests, typically the last entry
       KejaDigitalWeb.Endpoint,
-      KejaDigital.PaymentChecker
+      KejaDigital.PaymentChecker,
+      KejaDigital.Mpesa.Auth
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

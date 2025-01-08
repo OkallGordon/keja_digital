@@ -15,10 +15,14 @@ defmodule KejaDigitalWeb.MpesaPaymentLive do
         payments: list_payments(session["tenant_id"]),
         start_date: Date.beginning_of_month(Date.utc_today()),
         end_date: Date.end_of_month(Date.utc_today()),
-        till_number: "4154742"
+        till_number: "4154742",
+        search: "",
+        sort_by: :paid_at,
+        sort_direction: :desc,
+        loading: false
       )
 
-    {:ok, socket}
+    {:ok, socket, temporary_assigns: [payments: []]}
   end
 
   def handle_event("filter-dates", %{"start_date" => start_date, "end_date" => end_date}, socket) do
@@ -28,50 +32,102 @@ defmodule KejaDigitalWeb.MpesaPaymentLive do
          socket
          |> assign(:start_date, start_date)
          |> assign(:end_date, end_date)
-         |> assign(:payments, list_payments(socket.assigns.tenant_id, start_date, end_date))}
+         |> assign(:loading, true)
+         |> load_payments()}
 
       _ ->
         {:noreply, socket}
     end
   end
 
-def handle_event("download-statement", _params, socket) do
-  payments = list_payments(socket.assigns.tenant_id, socket.assigns.start_date, socket.assigns.end_date)
+  def handle_event("search", %{"search_term" => term}, socket) do
+    payments = list_payments(
+      socket.assigns.tenant_id,
+      socket.assigns.start_date,
+      socket.assigns.end_date,
+      term
+    )
 
-  case PDFGenerator.generate_statement(payments) do
-    {:ok, statement_data} ->
-      filename = "rent_statement_#{Date.to_string(socket.assigns.start_date)}_#{Date.to_string(socket.assigns.end_date)}.pdf"
-
-      {:noreply,
-       socket
-       |> push_event("download-file", %{
-         data: Base.encode64(statement_data),  # Encode the binary data as base64
-         filename: filename,
-         content_type: "application/pdf"
-       })}
-
-    {:error, _reason} ->
-      {:noreply,
-       socket
-       |> put_flash(:error, "Failed to generate PDF statement")}
-  end
-end
-
-  def handle_info({:payment_made, payment}, socket) do
-    {:noreply, Phoenix.Component.update(socket, :payments, &[payment | &1])}
+    {:noreply,
+     socket
+     |> assign(:search_term, term)
+     |> assign(:payments, payments)}
   end
 
-  defp list_payments(tenant_id, start_date \\ nil, end_date \\ nil) do
+
+  def handle_event("sort", %{"field" => field}, socket) do
+    {field, direction} = sort_params(field, socket.assigns.sort_by, socket.assigns.sort_direction)
+
+    {:noreply,
+     socket
+     |> assign(:sort_by, field)
+     |> assign(:sort_direction, direction)
+     |> assign(:loading, true)
+     |> load_payments()}
+  end
+
+  def handle_event("download-statement", _params, socket) do
+    payments = list_payments(socket.assigns.tenant_id, socket.assigns.start_date, socket.assigns.end_date)
+
+    case PDFGenerator.generate_statement(payments) do
+      {:ok, statement_data} ->
+        filename = "rent_statement_#{Date.to_string(socket.assigns.start_date)}_#{Date.to_string(socket.assigns.end_date)}.pdf"
+
+        {:noreply,
+         socket
+         |> push_event("download-file", %{
+           data: Base.encode64(statement_data),
+           filename: filename,
+           content_type: "application/pdf"
+         })}
+
+      {:error, _reason} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Failed to generate PDF statement")}
+    end
+  end
+
+  def handle_info({:payment_made, _payment}, socket) do
+    {:noreply,
+     socket
+     |> assign(:loading, true)
+     |> load_payments()}
+  end
+
+  defp load_payments(socket) do
+    payments = list_payments(
+      socket.assigns.tenant_id,
+      socket.assigns.start_date,
+      socket.assigns.end_date,
+      socket.assigns.search,
+      socket.assigns.sort_by,
+      socket.assigns.sort_direction
+    )
+
+    assign(socket, payments: payments, loading: false)
+  end
+
+  defp list_payments(tenant_id, start_date \\ nil, end_date \\ nil, search \\ "", sort_by \\ :paid_at, sort_direction \\ :desc) do
     if is_nil(tenant_id) do
       []
     else
       base_query = from(p in MpesaPayment, where: p.tenant_id == ^tenant_id)
-      query = filter_by_date_range(base_query, start_date, end_date)
 
-      query
-      |> order_by([p], desc: p.paid_at)
+      base_query
+      |> filter_by_date_range(start_date, end_date)
+      |> filter_by_search(search)
+      |> order_by([p], [{^sort_direction, field(p, ^sort_by)}])
       |> KejaDigital.Repo.all()
     end
+  end
+
+  defp filter_by_search(query, ""), do: query
+  defp filter_by_search(query, search) do
+    search_term = "%#{search}%"
+    from p in query,
+      where: ilike(p.transaction_id, ^search_term) or
+             ilike(fragment("CAST(? AS TEXT)", p.amount), ^search_term)
   end
 
   defp filter_by_date_range(query, nil, nil), do: query
@@ -94,6 +150,23 @@ end
       where: p.paid_at >= ^start_datetime and p.paid_at <= ^end_datetime
     )
   end
+
+  defp sort_params(field, current_field, current_direction) do
+    field = String.to_existing_atom(field)
+    if field == current_field do
+      {field, if(current_direction == :asc, do: :desc, else: :asc)}
+    else
+      {field, :asc}
+    end
+  end
+
+  defp sort_indicator(field, sort_by, sort_direction) when field == sort_by do
+    case sort_direction do
+      :asc -> "↑"
+      :desc -> "↓"
+    end
+  end
+  defp sort_indicator(_, _, _), do: ""
 
   defp status_color_class(status) do
     base_class = "px-2 py-1 rounded-full text-sm font-medium"
@@ -158,15 +231,33 @@ end
                 </div>
               </form>
 
+              <form phx-change="search" phx-submit="search" class="w-full sm:w-auto">
+               <input
+                 type="text"
+                 name="search_term"
+                 value={@search}
+                 placeholder="Search by ID, amount, or phone..."
+                 class="w-full rounded border-gray-300 px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500"
+                autocomplete="off"
+                phx-debounce="500"
+              />
+            </form>
+
               <div id="download-container" phx-hook="DownloadFile">
-                <button phx-click="download-statement" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
+                <button phx-click="download-statement" class="w-full sm:w-auto bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
                   Download Statement
                 </button>
-             </div>
+              </div>
             </div>
           </div>
 
-          <div class="overflow-x-auto">
+          <div class="overflow-x-auto relative">
+            <%= if @loading do %>
+              <div class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              </div>
+            <% end %>
+
             <%= if Enum.empty?(@payments) do %>
               <div class="text-center py-12">
                 <h3 class="mt-4 text-lg font-medium text-gray-900">No payments found</h3>
@@ -176,10 +267,23 @@ end
               <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                   <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction ID</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <%= for {field, label} <- [
+                      {"paid_at", "Date"},
+                      {"amount", "Amount"},
+                      {"transaction_id", "Transaction ID"},
+                      {"status", "Status"}
+                    ] do %>
+                      <th
+                        phx-click="sort"
+                        phx-value-field={field}
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      >
+                        <%= label %>
+                        <span class="ml-1">
+                          <%= sort_indicator(String.to_existing_atom(field), @sort_by, @sort_direction) %>
+                        </span>
+                      </th>
+                    <% end %>
                   </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -210,5 +314,4 @@ end
     </div>
     """
   end
-
 end

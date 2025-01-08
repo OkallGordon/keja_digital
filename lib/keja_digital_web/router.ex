@@ -136,6 +136,7 @@ defmodule KejaDigitalWeb.Router do
       live "/agreements", AdminReviewLive
       live "/agreements/:id", AgreementDetailLive
       live "/dashboard", AdminDashboardLive
+      live "/dashboard/audit_logs", Admin.AuditLogsLive, as: :audit_logs
 
 
       live "/payments/:tenant_id", PaymentLive

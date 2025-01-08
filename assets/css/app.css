@@ -12,3 +12,27 @@
   .animate-fade-in {
     animation: fadeIn 0.5s ease-out;
   }
+
+/* Custom animations */
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-primary: theme('colors.gray.900');
+    --text-primary: theme('colors.gray.100');
+  }
+}
+
+/* Mobile-specific styles */
+@supports (padding: max(0px)) {
+  .pb-safe-area-inset-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+  }
+}

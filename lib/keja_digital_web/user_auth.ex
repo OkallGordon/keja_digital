@@ -5,6 +5,7 @@ defmodule KejaDigitalWeb.UserAuth do
   import Phoenix.Controller
 
   alias KejaDigital.Store
+  alias KejaDigital.AuditLogger
 
   # Make the remember me cookie valid for 60 days.
   # If you want bump or reduce this value, also change
@@ -28,6 +29,9 @@ defmodule KejaDigitalWeb.UserAuth do
   def log_in_user(conn, user, params \\ %{}) do
     token = Store.generate_user_session_token(user)
     user_return_to = get_session(conn, :user_return_to)
+
+    # Add the audit logging here
+    AuditLogger.log_login(user, %{ip: conn.remote_ip |> :inet.ntoa() |> to_string()})
 
     conn
     |> renew_session()
@@ -72,19 +76,25 @@ defmodule KejaDigitalWeb.UserAuth do
 
   It clears all session data for safety. See renew_session.
   """
-  def log_out_user(conn) do
-    user_token = get_session(conn, :user_token)
-    user_token && Store.delete_user_session_token(user_token)
+ def log_out_user(conn) do
+  user_token = get_session(conn, :user_token)
 
-    if live_socket_id = get_session(conn, :live_socket_id) do
-      KejaDigitalWeb.Endpoint.broadcast(live_socket_id, "disconnect", %{})
-    end
-
-    conn
-    |> renew_session()
-    |> delete_resp_cookie(@remember_me_cookie)
-    |> redirect(to: ~p"/")
+  # Add the audit logging here
+  if user = conn.assigns[:current_user] do
+    AuditLogger.log_logout(user, %{ip: conn.remote_ip |> :inet.ntoa() |> to_string()})
   end
+
+  user_token && Store.delete_user_session_token(user_token)
+
+  if live_socket_id = get_session(conn, :live_socket_id) do
+    KejaDigitalWeb.Endpoint.broadcast(live_socket_id, "disconnect", %{})
+  end
+
+  conn
+  |> renew_session()
+  |> delete_resp_cookie(@remember_me_cookie)
+  |> redirect(to: ~p"/")
+end
 
   @doc """
   Authenticates the user by looking into the session

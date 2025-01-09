@@ -7,6 +7,7 @@ defmodule KejaDigital.Store do
   alias KejaDigital.Repo
 
   alias KejaDigital.Store.{User, UserToken, UserNotifier, DoorNumber}
+  alias KejaDigital.AuditLogger
 
   def list_available_door_numbers do
     Repo.all(from d in DoorNumber, where: d.occupied == false)
@@ -425,4 +426,38 @@ end
     end
   end
 
+  def create_user(attrs \\ %{}) do
+    %User{}
+    |> User.registration_changeset(attrs)  # Changed from changeset to registration_changeset
+    |> Repo.insert()
+    |> case do
+      {:ok, user} ->
+        User.after_operation(user, :create)
+        {:ok, user}
+      error ->
+        error
+    end
+  end
+
+  def update_user(user, attrs) do
+    user
+    |> User.registration_changeset(attrs)  # Changed from changeset to registration_changeset
+    |> Repo.update()
+    |> case do
+      {:ok, updated_user} ->
+        User.after_operation(updated_user, :update)
+        {:ok, updated_user}
+      error ->
+        error
+    end
+  end
+
+  # Add these new functions for agreement-related actions
+  def log_agreement_submission(user, agreement_id) do
+    AuditLogger.log_agreement_submission(user, agreement_id)
+  end
+
+  def log_agreement_opening(user, agreement_id) do
+    AuditLogger.log_agreement_opening(user, agreement_id)
+  end
 end

@@ -5,6 +5,7 @@ defmodule KejaDigitalWeb.AdminAuth do
   import Phoenix.Controller
 
   alias KejaDigital.Backoffice
+  alias KejaDigital.AuditLogger
 
   # Make the remember me cookie valid for 60 days.
   # If you want bump or reduce this value, also change
@@ -28,6 +29,9 @@ defmodule KejaDigitalWeb.AdminAuth do
   def log_in_admin(conn, admin, params \\ %{}) do
     token = Backoffice.generate_admin_session_token(admin)
     admin_return_to = get_session(conn, :admin_return_to)
+
+    # adding the audit logging here
+    AuditLogger.log_login(admin, %{ip: conn.remote_ip |> :inet.ntoa() |> to_string()})
 
     conn
     |> renew_session()
@@ -74,6 +78,11 @@ defmodule KejaDigitalWeb.AdminAuth do
   """
   def log_out_admin(conn) do
     admin_token = get_session(conn, :admin_token)
+
+    if admin = conn.assigns[:current_admin] do
+      AuditLogger.log_logout(admin, %{ip: conn.remote_ip |> :inet.ntoa() |> to_string()})
+    end
+
     admin_token && Backoffice.delete_admin_session_token(admin_token)
 
     if live_socket_id = get_session(conn, :live_socket_id) do

@@ -7,6 +7,7 @@ defmodule KejaDigital.Backoffice do
   alias KejaDigital.Repo
 
   alias KejaDigital.Backoffice.{Admin, AdminToken, AdminNotifier}
+  alias KejaDigital.AuditLogger
 
 
   def list_admin_users do
@@ -371,5 +372,52 @@ defmodule KejaDigital.Backoffice do
       {:ok, %{admin: admin}} -> {:ok, admin}
       {:error, :admin, changeset, _} -> {:error, changeset}
     end
+  end
+
+  def authenticate_admin(email, password) do
+    admin = Repo.get_by(Admin, email: email)
+
+    case admin do
+      nil ->
+        {:error, :invalid_credentials}
+
+      %Admin{hashed_password: hashed_password} = admin ->
+        if Bcrypt.verify_pass(password, hashed_password) do
+          {:ok, admin}
+        else
+          {:error, :invalid_credentials}
+        end
+    end
+  end
+
+  def create_admin(attrs \\ %{}) do
+    %Admin{}
+    |> Admin.registration_changeset(attrs)  # Changed from changeset to registration_changeset
+    |> Repo.insert()
+    |> case do
+      {:ok, admin} ->
+        Admin.after_operation(admin, :create)
+        {:ok, admin}
+      error ->
+        error
+    end
+  end
+
+  def update_admin(admin, attrs) do
+    admin
+    |> Admin.registration_changeset(attrs)  # Changed from changeset to registration_changeset
+    |> Repo.update()
+    |> case do
+      {:ok, updated_admin} ->
+        Admin.after_operation(updated_admin, :update)
+        {:ok, updated_admin}
+      error ->
+        error
+    end
+  end
+
+  # Add these new functions for agreement-related actions
+  def log_agreement_opening(admin, agreement_id) do
+    AuditLogger.log_agreement_opening(admin, agreement_id)
   end
 end

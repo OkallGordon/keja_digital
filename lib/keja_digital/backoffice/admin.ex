@@ -1,6 +1,7 @@
 defmodule KejaDigital.Backoffice.Admin do
   use Ecto.Schema
   import Ecto.Changeset
+  alias KejaDigital.AuditLogger
 
   schema "admins" do
     field :email, :string
@@ -159,5 +160,18 @@ defmodule KejaDigital.Backoffice.Admin do
     else
       add_error(changeset, :current_password, "is not valid")
     end
+  end
+
+  @doc """
+  Hook function to the called after admin operations
+  """
+  def after_operation(admin, action) do
+    case action do
+      :create -> AuditLogger.log_registration(admin)
+      :update -> AuditLogger.log_update(admin, %{})
+      :delete -> AuditLogger.log_delete(admin)
+    end
+
+    admin
   end
 end

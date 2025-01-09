@@ -1,6 +1,8 @@
 defmodule KejaDigital.Store.User do
   use Ecto.Schema
   import Ecto.Changeset
+  alias KejaDigital.AuditLogger
+
 
   @required_fields ~w(
     full_name
@@ -215,5 +217,18 @@ defmodule KejaDigital.Store.User do
     else
       add_error(changeset, :current_password, "is not valid")
     end
+  end
+
+  @doc """
+  Hook function to be called after user operations
+  """
+  def after_operation(user, action) do
+    case action do
+      :create -> AuditLogger.log_registration(user)
+      :update -> AuditLogger.log_profile_update(user, %{})  # You might want to track specific changes
+      :delete -> AuditLogger.log_account_deletion(user)
+    end
+
+    user
   end
 end

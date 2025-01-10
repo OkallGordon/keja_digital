@@ -10,6 +10,13 @@ defmodule KejaDigital.Agreements do
   alias KejaDigital.Backoffice
   alias KejaDigital.Notifications
 
+
+  def get_tenant_agreement_status(tenant_id) do
+    case Repo.get_by(Agreement, tenant_id: tenant_id) do
+      nil -> {:error, "No agreement found for tenant"}
+      agreement -> {:ok, agreement.status}
+    end
+  end
   @doc """
   Returns the list of tenant_agreements.
 

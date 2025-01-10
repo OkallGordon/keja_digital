@@ -10,7 +10,7 @@ defmodule KejaDigitalWeb.SharedLayoutLive do
   defp nav_items(%{role: :tenant} = _user) do
     [
       %{label: "Dashboard", icon: "home", path: ~p"/"},
-      %{label: "Payments", icon: "credit-card", path: ~p"/payments"},
+      %{label: "Payments", icon: "credit-card", path: ~p"/tenant/payments"},
       %{label: "Profile", icon: "user", path: ~p"/tenant/profile"}
     ]
   end

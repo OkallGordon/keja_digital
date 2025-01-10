@@ -83,12 +83,13 @@ defmodule KejaDigitalWeb.Router do
       live "/tenant_agreements", TenantAgreementLive.Index, :index
       live "/tenant_agreements/new", TenantAgreementLive.Index, :new
       live "/tenant_agreements/:id/edit", TenantAgreementLive.Index, :edit
-      live "/tenant_agreements/:id", TenantAgreementLive.Show, :show
+      live "/tenant_agreements/:id", TenantShow, :show
       live "/tenant_agreements/:id/show/edit", TenantAgreementLive.Show, :edit
       live "/tenant_agreement_status/:tenant_id", TenantAgreementLive
 
       live "/tenant/reminders", UserPaymentLive
-      live "/payments", MpesaPaymentLive
+      live "/tenant/payments", MpesaPaymentLive
+      live "/tenant/dashboard", Tenant.DashboardLive, :index
 
     end
   end

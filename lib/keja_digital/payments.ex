@@ -67,6 +67,32 @@ def list_all_payments do
   |> Repo.all()
 end
 
+def list_tenant_payments(tenant_id, opts \\ []) do
+  # Apply optional filters like date range or status
+  query = from p in MpesaPayment, where: p.tenant_id == ^tenant_id
+
+  query =
+    case opts[:status] do
+      nil -> query
+      status -> from p in query, where: p.status == ^status
+    end
+
+  Repo.all(query)
+end
+
+# Calculate pending rent for a tenant
+def get_pending_rent(tenant_id) do
+  # Assuming that rent is paid monthly and there's a Rent table.
+  # You can adjust the logic depending on your schema.
+
+  total_rent_due = 1000  # Example: Fetch this value from a Rent schema or config.
+  paid_rent = list_tenant_payments(tenant_id)
+                |> Enum.filter(fn p -> p.status == "paid" end)
+                |> Enum.reduce(0, fn p, acc -> acc + p.amount end)
+
+  total_rent_due - paid_rent
+end
+
   @doc """
   Gets a single mpesa_payment.
 

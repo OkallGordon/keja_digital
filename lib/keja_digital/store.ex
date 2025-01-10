@@ -460,4 +460,17 @@ end
   def log_agreement_opening(user, agreement_id) do
     AuditLogger.log_agreement_opening(user, agreement_id)
   end
+
+  def list_tenant_notifications(tenant_id, opts \\ []) do
+    query = from n in KejaDigital.Notifications.Notification,
+      where: n.tenant_agreement_id == ^tenant_id
+
+    query =
+      case opts[:read_status] do
+        nil -> query
+        read_status -> from n in query, where: n.is_read == ^read_status  # Note: changed 'read' to 'is_read' to match schema
+      end
+
+    Repo.all(query)
+  end
 end

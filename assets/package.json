@@ -1,0 +1,21 @@
+{
+  "name": "assets",
+  "version": "1.0.0",
+  "dependencies": {
+    "@tailwindcss/forms": "^0.5.10",
+    "heroicons": "^2.2.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.7",
+    "postcss": "^8.4.14",
+    "tailwindcss": "^3.3.2"
+  },
+  "scripts": {
+
+
+    "build": "tailwindcss -i ./css/app.css -o ../priv/static/assets/app.css",
+    "watch": "tailwindcss -i ./css/app.css -o ../priv/static/assets/app.css --watch"
+  }
+}
+
+

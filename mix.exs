@@ -32,6 +32,16 @@ defmodule KejaDigital.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+
+        {:ex_heroicons, "~> 3.1.0"},
+        {:heroicons,
+          github: "tailwindlabs/heroicons",
+          tag: "v2.1.5",
+          sparse: "optimized",
+          app: false,
+          compile: false,
+          depth: 1},
+
       {:bcrypt_elixir, "~> 3.0"},
       {:phoenix, "~> 1.7.14"},
       {:phoenix_ecto, "~> 4.5"},
@@ -45,8 +55,6 @@ defmodule KejaDigital.MixProject do
       {:phoenix_live_dashboard, "~> 0.8.3"},
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
-      # Updated heroicons dependency
-      {:heroicons, "~> 0.5"},
       {:swoosh, "~> 1.5"},
       {:finch, "~> 0.13"},
       {:telemetry_metrics, "~> 1.0"},
@@ -56,7 +64,8 @@ defmodule KejaDigital.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
       {:httpoison, "~> 2.2.1"},
-      {:pdf_generator, "~> 0.6.2"}
+      {:pdf_generator, "~> 0.6.2"},
+      {:number, "~> 1.0.5"}
     ]
   end
 

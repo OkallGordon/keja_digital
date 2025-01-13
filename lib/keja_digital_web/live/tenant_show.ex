@@ -3,34 +3,23 @@ defmodule KejaDigitalWeb.TenantShow do
 
   alias KejaDigital.Agreements
 
-  def mount(%{"id" => _id}, _session, socket) do
-    case socket.assigns[:current_user] do
+  def mount(_params, _session, socket) do
+    current_user = socket.assigns.current_user
+    # Using full_name instead of name
+    tenant_name = current_user.full_name
+
+    case Agreements.get_tenant_agreement_by_name(tenant_name) do
       nil ->
         {:ok,
          socket
-         |> put_flash(:error, "You must be logged in to view agreements")
-         |> push_navigate(to: ~p"/users/log_in")}
+         |> put_flash(:error, "No agreement found")
+         |> push_navigate(to: ~p"/tenant/dashboard")}
 
-      current_user ->
-        case Agreements.get_tenant_agreement_by_user(current_user.id) do
-          nil ->
-            {:ok,
-             socket
-             |> put_flash(:error, "No agreement found")
-             |> push_navigate(to: ~p"/tenant/dashboard")}
-
-          tenant_agreement ->
-            if tenant_agreement.tenant_id == current_user.id do
-              {:ok, assign(socket, :tenant_agreement, tenant_agreement)}
-            else
-              {:ok,
-               socket
-               |> put_flash(:error, "You are not authorized to view this agreement")
-               |> push_navigate(to: ~p"/tenant/dashboard")}
-            end
-        end
-      end
+      tenant_agreement ->
+        {:ok, assign(socket, :tenant_agreement, tenant_agreement)}
     end
+  end
+
   def render(assigns) do
     ~H"""
     <div class="container mx-auto p-6">

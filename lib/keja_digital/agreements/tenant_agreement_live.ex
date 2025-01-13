@@ -6,6 +6,7 @@ defmodule KejaDigital.Agreements.TenantAgreementLive do
     field :tenant_name, :string
     field :tenant_address, :string
     field :tenant_phone, :string
+    field :tenant_id, :integer
     field :rent, :decimal
     field :late_fee, :string
     field :deposit, :decimal
@@ -22,7 +23,7 @@ defmodule KejaDigital.Agreements.TenantAgreementLive do
 
   def changeset(tenant_agreement_live, attrs) do
     tenant_agreement_live
-    |> cast(attrs, [:tenant_name, :tenant_address, :tenant_phone, :rent, :late_fee, :deposit, :signature, :start_date, :agreement_content, :status, :submitted])
+    |> cast(attrs, [:tenant_name, :tenant_id, :tenant_address, :tenant_phone, :rent, :late_fee, :deposit, :signature, :start_date, :agreement_content, :status, :submitted])
     |> validate_required([:tenant_name, :tenant_address, :tenant_phone, :rent, :deposit, :signature, :start_date, :status, :submitted])
     |> validate_length(:tenant_name, min: 2, max: 100)
     |> validate_length(:tenant_phone, min: 10, max: 15)

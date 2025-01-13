@@ -11,6 +11,16 @@ defmodule KejaDigital.Agreements do
   alias KejaDigital.Notifications
 
 
+  #fetch the currently logged in user's agreements
+  def get_tenant_agreement_by_user(user_id) do
+    from(ta in TenantAgreementLive,
+      where: ta.tenant_id == ^user_id,
+      limit: 1,
+      order_by: [desc: ta.inserted_at]
+    )
+    |> Repo.one()
+  end
+
   def get_tenant_agreement_status(tenant_id) do
     case Repo.get_by(Agreement, tenant_id: tenant_id) do
       nil -> {:error, "No agreement found for tenant"}
@@ -66,6 +76,7 @@ defp broadcast_agreement_update({:ok, agreement} = result) do
   )
   result
 end
+
 defp broadcast_agreement_update(result), do: result
   @doc """
   Gets a single tenant_agreement_live.

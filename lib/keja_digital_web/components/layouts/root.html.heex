@@ -10,83 +10,190 @@
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}></script>
   </head>
-  <body class="bg-white">
-    <ul class="relative z-10 flex items-center gap-4 px-4 sm:px-6 lg:px-8 justify-end">
-      <!-- Check if admin is logged in -->
-      <%= if @current_admin do %>
-        <li class="text-[0.8125rem] leading-6 text-zinc-900">
-          <%= @current_admin.email %>
-        </li>
-        <li>
-          <.link
-            href={~p"/admins/settings"}
-            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
-          >
-            Settings
-          </.link>
-        </li>
-        <li>
-          <.link
-            href={~p"/admins/log_out"}
-            method="delete"
-            class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
-          >
-            Log out
-          </.link>
-        </li>
-      <% else %>
-        <!-- Check if user is logged in -->
-        <%= if @current_user do %>
-          <li class="text-[0.8125rem] leading-6 text-zinc-900">
-            <%= @current_user.email %>
-          </li>
-          <li>
-            <.link
-              href={~p"/users/settings"}
-              class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
-            >
-              Settings
-            </.link>
-          </li>
-          <li>
-            <.link
-              href={~p"/users/log_out"}
-              method="delete"
-              class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
-            >
-              Log out
-            </.link>
-          </li>
-        <% else %>
-          <!-- Admin log in -->
-          <li>
-            <.link
-              href={~p"/admins/log_in"}
-              class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
-            >
-              Admin Log in
-            </.link>
-          </li>
-          <!-- User login/register -->
-          <li>
-            <.link
-              href={~p"/users/register"}
-              class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
-            >
-              Tenant Register
-            </.link>
-          </li>
-          <li>
-            <.link
-              href={~p"/users/log_in"}
-              class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
-            >
-              Tenant Log in
-            </.link>
-          </li>
-        <% end %>
+  <body class="bg-gray-50">
+    <!-- Top Navigation Bar -->
+    <nav class="bg-white shadow-sm fixed w-full z-50">
+      <div class="w-full px-4 lg:px-8 xl:px-12">
+        <div class="flex justify-between h-16">
+          <!-- Left side - Logo -->
+          <div class="flex">
+            <div class="flex-shrink-0 flex items-center">
+              <span class="text-2xl font-bold text-indigo-600">KejaDigital</span>
+            </div>
+          </div>
+
+          <!-- Right side - User Menu -->
+          <div class="flex items-center">
+            <%= if @current_admin do %>
+              <div class="ml-3 relative flex items-center gap-4">
+                <span class="text-gray-600 text-sm">
+                  Welcome, Admin
+                </span>
+                <img class="h-8 w-8 rounded-full bg-gray-200" src="/api/placeholder/32/32" alt="Profile" />
+                <div class="flex gap-4">
+                  <.link
+                    href={~p"/admins/settings"}
+                    class="text-sm text-gray-700 hover:text-indigo-600 font-medium flex items-center gap-2"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+                    </svg>
+                    Settings
+                  </.link>
+                  <.link
+                    href={~p"/admins/log_out"}
+                    method="delete"
+                    class="text-sm text-red-600 hover:text-red-800 font-medium flex items-center gap-2"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd" />
+                    </svg>
+                    Log out
+                  </.link>
+                </div>
+              </div>
+            <% else %>
+              <%= if @current_user do %>
+                <div class="ml-3 relative flex items-center gap-4">
+                  <span class="text-gray-600 text-sm">
+                    Welcome back, <%= String.split(@current_user.email, "@") |> List.first() %>
+                  </span>
+                  <img class="h-8 w-8 rounded-full bg-gray-200" src="/api/placeholder/32/32" alt="Profile" />
+                  <div class="flex gap-4">
+                    <.link
+                      href={~p"/users/settings"}
+                      class="text-sm text-gray-700 hover:text-indigo-600 font-medium flex items-center gap-2"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+                      </svg>
+                      Settings
+                    </.link>
+                    <.link
+                      href={~p"/users/log_out"}
+                      method="delete"
+                      class="text-sm text-red-600 hover:text-red-800 font-medium flex items-center gap-2"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd" />
+                      </svg>
+                      Log out
+                    </.link>
+                  </div>
+                </div>
+              <% else %>
+                <!-- Login/Register Links for non-authenticated users -->
+                <div class="flex items-center gap-4">
+                  <.link
+                    href={~p"/admins/log_in"}
+                    class="text-sm text-gray-700 hover:text-indigo-600 font-medium"
+                  >
+                    Admin Login
+                  </.link>
+                  <.link
+                    href={~p"/users/register"}
+                    class="text-sm bg-indigo-50 text-indigo-600 px-4 py-2 rounded-md hover:bg-indigo-100 font-medium"
+                  >
+                    Tenant Register
+                  </.link>
+                  <.link
+                    href={~p"/users/log_in"}
+                    class="text-sm bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 font-medium"
+                  >
+                    Tenant Login
+                  </.link>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <div class="pt-16 min-h-screen">
+      <!-- Quick Stats Bar for authenticated users -->
+      <%= if @current_user || @current_admin do %>
+        <div class="bg-white shadow-sm">
+          <div class="w-full px-4 lg:px-8 xl:px-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 py-6">
+              <div class="p-6 rounded-lg bg-indigo-50">
+                <div class="text-sm text-indigo-600 font-medium">Total Views</div>
+                <div class="text-2xl font-bold text-indigo-900">1,234</div>
+              </div>
+              <div class="p-6 rounded-lg bg-green-50">
+                <div class="text-sm text-green-600 font-medium">Active Listings</div>
+                <div class="text-2xl font-bold text-green-900">56</div>
+              </div>
+              <div class="p-6 rounded-lg bg-blue-50">
+                <div class="text-sm text-blue-600 font-medium">Messages</div>
+                <div class="text-2xl font-bold text-blue-900">23</div>
+              </div>
+              <div class="p-6 rounded-lg bg-purple-50">
+                <div class="text-sm text-purple-600 font-medium">Saved Properties</div>
+                <div class="text-2xl font-bold text-purple-900">12</div>
+              </div>
+            </div>
+          </div>
+        </div>
       <% end %>
-    </ul>
-    <%= @inner_content %>
+
+      <!-- Page Content -->
+      <main class="w-full px-4 lg:px-8 xl:px-12 py-8">
+        <%= @inner_content %>
+      </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-50 border-t border-gray-200">
+      <div class="w-full px-4 lg:px-8 xl:px-12 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div>
+            <h3 class="text-sm font-semibold text-gray-900 tracking-wider uppercase">About</h3>
+            <p class="mt-4 text-sm text-gray-600">
+              KejaDigital is your trusted platform for finding and managing rental properties across Kenya.
+            </p>
+          </div>
+          <div>
+            <h3 class="text-sm font-semibold text-gray-900 tracking-wider uppercase">Quick Links</h3>
+            <ul class="mt-4 space-y-2">
+              <li>
+                <a href="#" class="text-sm text-gray-600 hover:text-indigo-600">Browse Properties</a>
+              </li>
+              <li>
+                <a href="#" class="text-sm text-gray-600 hover:text-indigo-600">List Property</a>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="text-sm font-semibold text-gray-900 tracking-wider uppercase">Support</h3>
+            <ul class="mt-4 space-y-2">
+              <li>
+                <a href="#" class="text-sm text-gray-600 hover:text-indigo-600">Help Center</a>
+              </li>
+              <li>
+                <a href="#" class="text-sm text-gray-600 hover:text-indigo-600">Contact Us</a>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="text-sm font-semibold text-gray-900 tracking-wider uppercase">Legal</h3>
+            <ul class="mt-4 space-y-2">
+              <li>
+                <a href="#" class="text-sm text-gray-600 hover:text-indigo-600">Privacy Policy</a>
+              </li>
+              <li>
+                <a href="#" class="text-sm text-gray-600 hover:text-indigo-600">Terms of Service</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="mt-8 pt-8 border-t border-gray-200">
+          <p class="text-sm text-gray-400 text-center">
+            © 2024 KejaDigital. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </footer>
   </body>
 </html>

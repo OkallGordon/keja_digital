@@ -1,6 +1,8 @@
-<main class="px-4 py-20 sm:px-6 lg:px-8">
-  <div class="mx-auto max-w-2xl">
+<main class="w-full px-4 lg:px-8 xl:px-12">
+  <div class="mx-auto max-w-7xl">
     <.flash_group flash={@flash} />
-    <%= @inner_content %>
+    <div class="bg-white rounded-lg shadow-sm p-6 my-6">
+      <%= @inner_content %>
+    </div>
   </div>
 </main>

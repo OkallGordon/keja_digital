@@ -159,7 +159,7 @@ defmodule KejaDigitalWeb.TenantAgreementLive.FormComponent do
        to_form(Agreements.change_tenant_agreement_live(tenant_agreement_live))
      end)
      |> assign(:form_submitted, false)
-     |> assign(:submission_check, nil)}  # Add this to track submission status
+     |> assign(:submission_check, nil)}
   end
 
   @impl true

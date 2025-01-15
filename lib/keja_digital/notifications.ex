@@ -8,6 +8,26 @@ defmodule KejaDigital.Notifications do
 
   alias KejaDigital.Notifications.Notification
 
+  # Mark a single notification as read
+  def mark_as_read(notification_id) do
+    Notification
+    |> Repo.get(notification_id)
+    |> case do
+      nil -> {:error, :not_found}
+      notification ->
+        notification
+        |> Notification.changeset(%{status: "read"})
+        |> Repo.update()
+    end
+  end
+  # Mark all notifications as read for a given admin
+
+  def mark_all_as_read(admin_id) do
+    from(n in Notification, where: n.admin_id == ^admin_id and not n.is_read, update: [set: [is_read: true]])
+    |> Repo.update_all([])
+  end
+
+
   @doc """
   Returns the list of notifications.
 

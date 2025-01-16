@@ -73,40 +73,144 @@ defmodule KejaDigitalWeb.Tenant.DashboardLive do
   end
   @impl true
   def render(assigns) do
-    ~H"""
-    <div class="w-full h-screen bg-gray-50 flex flex-col">
-      <!-- Top Navigation -->
-     <header class="bg-white shadow">
-       <div class="w-full px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16 items-center">
-          <h1 class="text-2xl font-semibold text-gray-900">Tenant Dashboard</h1>
-          <div class="flex items-center gap-4">
-            <div class="relative">
-              <.link navigate={~p"/tenant/reminders"} class="p-2 text-gray-600 hover:text-gray-900 block">
-                <.icon name="hero-bell" class="h-6 w-6" />
-                <%= if length(@notifications) > 0 do %>
-                  <span class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
-                <% end %>
-              </.link>
-            </div>
-            <div class="flex items-center gap-2">
-              <%= if @current_user.photo do %>
-                <img src={@current_user.photo} class="h-12 w-12 rounded-full" alt="Profile photo" />
-              <% else %>
-                <.icon name="hero-user-circle" class="h-12 w-12 text-gray-400" />
-              <% end %>
-              <span class="text-sm font-medium text-gray-700">
-                Welcome, <%= @current_user.full_name %>
-              </span>
-            </div>
+      ~H"""
+      <div class="flex h-screen bg-gray-50">
+        <!-- Left Sidebar -->
+        <div class="hidden md:flex md:w-64 md:flex-col bg-white shadow-lg">
+          <!-- Logo/Brand -->
+          <div class="h-16 flex items-center px-4 border-b">
+            <h1 class="text-xl font-semibold text-gray-900">Keja Digital</h1>
           </div>
+
+          <!-- Navigation Menu -->
+          <nav class="flex-1 px-4 py-4 space-y-4">
+            <div>
+              <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Main Menu</h3>
+              <div class="mt-2 space-y-1">
+                <.link navigate={~p"/tenant/dashboard"} class="flex items-center px-3 py-2 text-sm rounded-lg bg-blue-50 text-blue-700">
+                  <.icon name="hero-home" class="mr-3 h-5 w-5"/>
+                  Dashboard
+                </.link>
+                <.link navigate={~p"/tenant/payments"} class="flex items-center px-3 py-2 text-sm rounded-lg text-gray-600 hover:bg-gray-50">
+                  <.icon name="hero-currency-dollar" class="mr-3 h-5 w-5"/>
+                  Payments
+                </.link>
+                <.link navigate={~p"/tenant_agreements"} class="flex items-center px-3 py-2 text-sm rounded-lg text-gray-600 hover:bg-gray-50">
+                  <.icon name="hero-document-text" class="mr-3 h-5 w-5"/>
+                  Agreements
+                </.link>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Account</h3>
+              <div class="mt-2 space-y-1">
+                <.link navigate={~p"/tenant/profile"} class="flex items-center px-3 py-2 text-sm rounded-lg text-gray-600 hover:bg-gray-50">
+                  <.icon name="hero-user" class="mr-3 h-5 w-5"/>
+                  Profile
+                </.link>
+                <.link navigate={~p"/tenant/reminders"} class="flex items-center px-3 py-2 text-sm rounded-lg text-gray-600 hover:bg-gray-50">
+                  <.icon name="hero-bell" class="mr-3 h-5 w-5"/>
+                  Notifications
+                  <%= if length(@notifications) > 0 do %>
+                    <span class="ml-auto bg-red-100 text-red-600 text-xs rounded-full px-2 py-0.5"><%= length(@notifications) %></span>
+                  <% end %>
+                </.link>
+              </div>
+            </div>
+          </nav>
         </div>
-      </div>
-    </header>
-      <!-- Main Content -->
-      <main class="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Profile Card -->
-        <div class="bg-white shadow rounded-lg mb-8">
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+          <!-- Top Header -->
+          <header class="bg-white shadow">
+            <div class="w-full px-4 sm:px-6 lg:px-8">
+              <div class="flex justify-between h-16 items-center">
+                <!-- Mobile menu button -->
+                <button type="button" class="md:hidden p-2 text-gray-500 hover:text-gray-600">
+                  <.icon name="hero-bars-3" class="h-6 w-6"/>
+                </button>
+
+                <div class="flex items-center gap-4">
+                  <div class="relative">
+                    <.link navigate={~p"/tenant/reminders"} class="p-2 text-gray-600 hover:text-gray-900 block">
+                      <.icon name="hero-bell" class="h-6 w-6" />
+                      <%= if length(@notifications) > 0 do %>
+                        <span class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
+                      <% end %>
+                    </.link>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <%= if @current_user.photo do %>
+                      <img src={@current_user.photo} class="h-12 w-12 rounded-full" alt="Profile photo" />
+                    <% else %>
+                      <.icon name="hero-user-circle" class="h-12 w-12 text-gray-400" />
+                    <% end %>
+                    <span class="text-sm font-medium text-gray-700">
+                      Welcome, <%= @current_user.full_name %>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <!-- Main Scrollable Content -->
+          <main class="flex-1 overflow-y-auto bg-gray-50">
+            <div class="px-4 sm:px-6 lg:px-8 py-8">
+              <!-- Stats Overview -->
+              <div class="grid grid-cols-1 gap-6 mb-8 sm:grid-cols-2 lg:grid-cols-4">
+                <!-- Your existing stats cards here -->
+                <.link navigate={~p"/tenant_agreements"} class="block">
+                  <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="p-5">
+                      <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                          <.icon name="hero-currency-dollar" class="h-6 w-6 text-gray-400" />
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                          <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Pending Rent</dt>
+                            <dd class="text-lg font-semibold text-gray-900">
+                              <%= format_currency(@pending_rent.amount) %>
+                            </dd>
+                            <dt class="text-xs text-gray-500">Due on <%= @pending_rent.due_date %></dt>
+                          </dl>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </.link>
+                <!-- Agreement Status -->
+                <.link navigate={~p"/tenant_agreements/:id"} class="block">
+                  <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="p-5">
+                      <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                          <.icon name="hero-document-text" class="h-6 w-6 text-gray-400" />
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                          <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Agreement Status</dt>
+                            <dd class="text-lg font-semibold text-gray-900">
+                              <%= @agreement_status.status %>
+                            </dd>
+                            <dt class="text-xs text-gray-500">Valid until <%= @agreement_status.valid_until %></dt>
+                          </dl>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </.link>
+              </div>
+
+              <!-- Profile Card -->
+              <div class="bg-white shadow rounded-lg mb-8">
+                <div class="p-6">
+                  <h2 class="text-lg font-medium text-gray-900 mb-6">Personal Information</h2>
+                  <!-- Your existing profile content -->
+                  <div class="bg-white shadow rounded-lg mb-8">
           <div class="p-6">
             <h2 class="text-lg font-medium text-gray-900 mb-6">Personal Information</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -157,54 +261,7 @@ defmodule KejaDigitalWeb.Tenant.DashboardLive do
             </div>
           </div>
         </div>
-
-        <!-- Stats Overview -->
-        <div class="grid grid-cols-1 gap-6 mb-8 sm:grid-cols-2 lg:grid-cols-4">
-          <!-- Rent Status -->
-          <.link navigate={~p"/tenant_agreements"} class="block">
-            <div class="bg-white overflow-hidden shadow rounded-lg">
-              <div class="p-5">
-                <div class="flex items-center">
-                  <div class="flex-shrink-0">
-                    <.icon name="hero-currency-dollar" class="h-6 w-6 text-gray-400" />
-                  </div>
-                  <div class="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt class="text-sm font-medium text-gray-500 truncate">Pending Rent</dt>
-                      <dd class="text-lg font-semibold text-gray-900">
-                        <%= format_currency(@pending_rent.amount) %>
-                      </dd>
-                      <dt class="text-xs text-gray-500">Due on <%= @pending_rent.due_date %></dt>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </.link>
-          <!-- Agreement Status -->
-          <.link navigate={~p"/tenant_agreements/:id"} class="block">
-            <div class="bg-white overflow-hidden shadow rounded-lg">
-              <div class="p-5">
-                <div class="flex items-center">
-                  <div class="flex-shrink-0">
-                    <.icon name="hero-document-text" class="h-6 w-6 text-gray-400" />
-                  </div>
-                  <div class="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt class="text-sm font-medium text-gray-500 truncate">Agreement Status</dt>
-                      <dd class="text-lg font-semibold text-gray-900">
-                        <%= @agreement_status.status %>
-                      </dd>
-                      <dt class="text-xs text-gray-500">Valid until <%= @agreement_status.valid_until %></dt>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </.link>
-        </div>
-
-        <!-- Recent Payments -->
+              <!-- Recent Payments -->
         <div class="bg-white shadow rounded-lg mb-8">
           <div class="p-6">
             <div class="flex items-center justify-between mb-4">
@@ -241,9 +298,10 @@ defmodule KejaDigitalWeb.Tenant.DashboardLive do
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Notifications -->
-        <%= if length(@notifications) > 0 do %>
+              <!-- Notifications -->
+      <%= if length(@notifications) > 0 do %>
           <div class="mt-8">
             <h2 class="text-lg font-medium text-gray-900 mb-4">Recent Notifications</h2>
             <div class="bg-white shadow overflow-hidden sm:rounded-md">
@@ -275,8 +333,11 @@ defmodule KejaDigitalWeb.Tenant.DashboardLive do
             </div>
           </div>
         <% end %>
-      </main>
-    </div>
-    """
+        </div>
+        </div>
+          </main>
+        </div>
+      </div>
+      """
+    end
   end
-end

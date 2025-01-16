@@ -1,11 +1,16 @@
 defmodule KejaDigitalWeb.AdminDashboardLive do
   use KejaDigitalWeb, :live_view
   alias KejaDigital.Store
+  alias KejaDigital.Backoffice
+  alias KejaDigital.Backoffice.Admin  # Added proper alias
 
   def mount(_params, _session, socket) do
-    users = Store.list_users()
-    admin_users = Enum.filter(users, fn user -> user.role == "admin" end)
-    regular_users = Enum.filter(users, fn user -> user.role != "admin" end)
+    # Fetch tenants from Store
+    tenants = Store.list_users()
+    regular_users = Enum.filter(tenants, fn user -> user.role != "admin" end)
+
+    # Fetch admin users from Backoffice
+    admin_users = Backoffice.list_admin_users()
     available_door_numbers = Store.list_available_door_numbers()
 
     socket =
@@ -14,6 +19,7 @@ defmodule KejaDigitalWeb.AdminDashboardLive do
       |> assign(:regular_users, regular_users)
       |> assign(:show_delete_modal, false)
       |> assign(:show_edit_modal, false)
+      |> assign(:show_admin_modal, false)  # Added this
       |> assign(:user_to_delete, nil)
       |> assign(:user_to_edit, nil)
       |> assign(:changeset, nil)
@@ -21,6 +27,17 @@ defmodule KejaDigitalWeb.AdminDashboardLive do
       |> assign(:available_door_numbers, available_door_numbers)
 
     {:ok, socket}
+  end
+
+  def handle_event("edit_user", %{"id" => user_id, "type" => "admin"}, socket) do
+    admin = Backoffice.get_admin!(user_id)
+    changeset = Backoffice.change_admin_registration(admin)
+
+    {:noreply,
+     socket
+     |> assign(:show_edit_modal, true)
+     |> assign(:user_to_edit, %{user: admin, type: :admin})
+     |> assign(:changeset, changeset)}
   end
 
   def handle_event("edit_user", %{"id" => user_id}, socket) do
@@ -31,19 +48,24 @@ defmodule KejaDigitalWeb.AdminDashboardLive do
     {:noreply,
      socket
      |> assign(:show_edit_modal, true)
-     |> assign(:user_to_edit, user)
+     |> assign(:user_to_edit, %{user: user, type: :tenant})
      |> assign(:changeset, changeset)
      |> assign(:available_door_numbers, available_door_numbers)}
   end
 
   def handle_event("save_user", %{"user" => user_params}, socket) do
-    user = socket.assigns.user_to_edit
+    %{user: user, type: type} = socket.assigns.user_to_edit
 
-    case Store.update_user(user, user_params) do
+    result = case type do
+      :admin -> Backoffice.update_admin(user, user_params)
+      :tenant -> Store.update_user(user, user_params)
+    end
+
+    case result do
       {:ok, _updated_user} ->
-        users = Store.list_users()
-        admin_users = Enum.filter(users, fn user -> user.role == "admin" end)
-        regular_users = Enum.filter(users, fn user -> user.role != "admin" end)
+        admin_users = Backoffice.list_admin_users()
+        tenants = Store.list_users()
+        regular_users = Enum.filter(tenants, fn user -> user.role != "admin" end)
 
         {:noreply,
          socket
@@ -62,29 +84,67 @@ defmodule KejaDigitalWeb.AdminDashboardLive do
     end
   end
 
-  def handle_event("cancel_edit", _, socket) do
+  def handle_event("new_admin", _params, socket) do
+    # Create a new admin changeset
+    changeset = Backoffice.change_admin_registration(%Admin{})
+
     {:noreply,
      socket
-     |> assign(:show_edit_modal, false)
-     |> assign(:user_to_edit, nil)
-     |> assign(:changeset, nil)}
+     |> assign(:show_admin_modal, true)
+     |> assign(:changeset, changeset)}
+  end
+
+  def handle_event("save_admin", %{"admin" => admin_params}, socket) do
+    case Backoffice.create_admin(admin_params) do
+      {:ok, _admin} ->
+        admin_users = Backoffice.list_admin_users()
+
+        {:noreply,
+         socket
+         |> assign(:admin_users, admin_users)
+         |> assign(:show_admin_modal, false)
+         |> assign(:changeset, nil)
+         |> put_flash(:info, "Admin created successfully")}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply,
+         socket
+         |> assign(:changeset, changeset)
+         |> put_flash(:error, "Error creating admin")}
+    end
+  end
+
+  def handle_event("delete_user", %{"id" => user_id, "type" => "admin"}, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_delete_modal, true)
+     |> assign(:user_to_delete, %{id: user_id, type: :admin})}
   end
 
   def handle_event("delete_user", %{"id" => user_id}, socket) do
     {:noreply,
      socket
      |> assign(:show_delete_modal, true)
-     |> assign(:user_to_delete, user_id)}
+     |> assign(:user_to_delete, %{id: user_id, type: :tenant})}
   end
 
   def handle_event("confirm_delete", _params, socket) do
-    user = Store.get_user!(socket.assigns.user_to_delete)
+    %{id: user_id, type: type} = socket.assigns.user_to_delete
 
-    case Store.delete_user(user) do
+    result = case type do
+      :admin ->
+        admin = Backoffice.get_admin!(user_id)
+        Backoffice.delete_admin(admin)
+      :tenant ->
+        user = Store.get_user!(user_id)
+        Store.delete_user(user)
+    end
+
+    case result do
       {:ok, _} ->
-        users = Store.list_users()
-        admin_users = Enum.filter(users, fn user -> user.role == "admin" end)
-        regular_users = Enum.filter(users, fn user -> user.role != "admin" end)
+        admin_users = Backoffice.list_admin_users()
+        tenants = Store.list_users()
+        regular_users = Enum.filter(tenants, fn user -> user.role != "admin" end)
 
         {:noreply,
          socket
@@ -102,14 +162,28 @@ defmodule KejaDigitalWeb.AdminDashboardLive do
     end
   end
 
+  def handle_event("cancel_edit", _, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_edit_modal, false)
+     |> assign(:user_to_edit, nil)
+     |> assign(:changeset, nil)}
+  end
+
   def handle_event("cancel_delete", _params, socket) do
     {:noreply, assign(socket, show_delete_modal: false)}
+  end
+
+  def handle_event("cancel_admin", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_admin_modal, false)
+     |> assign(:changeset, nil)}
   end
 
   def handle_event("switch_tab", %{"tab" => tab}, socket) do
     {:noreply, assign(socket, :active_tab, tab)}
   end
-
   def render(assigns) do
     ~H"""
     <div class="min-h-screen bg-gray-50">

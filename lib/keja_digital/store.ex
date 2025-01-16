@@ -9,9 +9,25 @@ defmodule KejaDigital.Store do
   alias KejaDigital.Store.{User, UserToken, UserNotifier, DoorNumber}
   alias KejaDigital.AuditLogger
 
-  def list_available_door_numbers do
-    Repo.all(from d in DoorNumber, where: d.occupied == false)
+    def change_user(user, attrs \\ %{}) do
+    User.registration_changeset(user, attrs)
   end
+
+  def list_available_door_numbers(user_id \\ nil) do
+    query =
+      from d in DoorNumber,
+        where: d.occupied == false
+
+    query =
+      if user_id do
+        from d in query, where: d.user_id == ^user_id
+      else
+        query
+      end
+
+    Repo.all(query)
+  end
+
 
 
   def list_users do

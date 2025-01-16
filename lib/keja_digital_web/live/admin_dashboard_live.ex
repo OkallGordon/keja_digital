@@ -275,6 +275,47 @@ defmodule KejaDigitalWeb.AdminDashboardLive do
         </div>
       <% end %>
 
+       <!-- Edit Modal -->
+     <%= if @show_edit_modal do %>
+     <.modal id="edit-modal" show on_cancel={JS.patch(~p"/")}>
+      <.header>
+        Edit User
+        <:subtitle>Update user information</:subtitle>
+      </.header>
+
+      <.simple_form
+        :let={f}
+        for={@changeset}
+        id="edit-user-form"
+        phx-submit="save_user">
+
+        <.input field={f[:full_name]} type="text" label="Full Name" required />
+        <.input field={f[:postal_address]} type="text" label="Postal Address" required />
+        <.input field={f[:phone_number]} type="text" label="Phone Number" required />
+        <.input field={f[:nationality]} type="text" label="Nationality" required />
+        <.input field={f[:organization]} type="text" label="Organization" required />
+        <.input field={f[:next_of_kin]} type="text" label="Next of Kin" required />
+        <.input field={f[:next_of_kin_contact]} type="text" label="Next of Kin Contact" required />
+        <.input field={f[:passport]} type="text" label="Passport Number" required />
+
+        <.input
+          field={f[:door_number]}
+          type="select"
+          label="Door Number"
+          required
+          options={Enum.map(@available_door_numbers, &{&1.number, &1.number})}
+        />
+
+        <.input field={f[:email]} type="email" label="Email" required />
+
+        <:actions>
+          <.button type="submit" phx-disable-with="Saving...">Save Changes</.button>
+          <.button type="button" phx-click="cancel_edit" class="ml-2">Cancel</.button>
+         </:actions>
+         </.simple_form>
+        </.modal>
+      <% end %>
+
       <!-- Flash Messages -->
       <%= if flash = Phoenix.Flash.get(@flash, :info) || Phoenix.Flash.get(@flash, :error) do %>
         <div class={[

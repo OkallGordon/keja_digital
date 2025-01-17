@@ -151,3 +151,15 @@ if (typeof liveSocket === 'undefined') {
     }
   });
 }
+
+const MobileMenu = {
+  mounted() {
+    this.handleEvent("toggle_mobile_menu", () => {
+      const mobileMenu = document.getElementById("mobile-menu");
+      const isHidden = mobileMenu.style.display === "none";
+      mobileMenu.style.display = isHidden ? "block" : "none";
+    });
+  }
+};
+
+export default MobileMenu;

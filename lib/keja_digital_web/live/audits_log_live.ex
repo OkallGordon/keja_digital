@@ -68,7 +68,7 @@ defmodule KejaDigitalWeb.Admin.AuditLogsLive do
   end
 
   defp list_logs(filter \\ %{}) do
-    base_query = from(a in Audit, order_by: [desc: a.inserted_at], limit: 100)
+    base_query = from(a in Audit, order_by: [desc: a.inserted_at], limit: 1000)
 
     filter
     |> Enum.reduce(base_query, fn

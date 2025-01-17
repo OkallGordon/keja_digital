@@ -324,20 +324,20 @@ defmodule KejaDigitalWeb.Tenant.DashboardLive do
                           <p class="text-sm text-gray-500">
                             <%= notification.message %>
                           </p>
+                         </div>
                         </div>
-                      </div>
-                    </div>
-                  </li>
+                       </div>
+                      </li>
+                     <% end %>
+                   </ul>
+                  </div>
+                 </div>
                 <% end %>
-              </ul>
+               </div>
+              </div>
+             </main>
             </div>
-          </div>
-        <% end %>
-        </div>
-        </div>
-          </main>
-        </div>
-      </div>
+           </div>
       """
     end
   end

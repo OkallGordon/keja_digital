@@ -1,8 +1,143 @@
-<main class="w-full px-4 lg:px-8 xl:px-12">
-  <div class="mx-auto max-w-7xl">
-    <.flash_group flash={@flash} />
-    <div class="bg-white rounded-lg shadow-sm p-6 my-6">
-      <%= @inner_content %>
-    </div>
-  </div>
-</main>
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-50">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content={get_csrf_token()} />
+    <.live_title suffix=" · Keja Digital">
+      <%= assigns[:page_title] || "Dashboard" %>
+    </.live_title>
+    <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
+    </script>
+  </head>
+  <body class="h-full">
+    <%= if @current_user do %>
+      <div class="flex h-screen bg-gray-50">
+        <!-- Left Sidebar -->
+        <div class="hidden md:flex md:w-64 md:flex-col bg-white shadow-lg">
+          <!-- Logo/Brand -->
+
+          <!-- Navigation Menu -->
+          <nav class="flex-1 px-4 py-4 space-y-4">
+            <div>
+              <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Main Menu</h3>
+              <div class="mt-2 space-y-1">
+                <.link navigate={~p"/tenant/dashboard"} class="flex items-center px-3 py-2 text-sm rounded-lg bg-blue-50 text-blue-700">
+                  <.icon name="hero-home" class="mr-3 h-5 w-5"/>
+                  Dashboard
+                </.link>
+                <.link navigate={~p"/tenant/payments"} class="flex items-center px-3 py-2 text-sm rounded-lg text-gray-600 hover:bg-gray-50">
+                  <.icon name="hero-currency-dollar" class="mr-3 h-5 w-5"/>
+                  Payments
+                </.link>
+                <.link navigate={~p"/tenant_agreements"} class="flex items-center px-3 py-2 text-sm rounded-lg text-gray-600 hover:bg-gray-50">
+                  <.icon name="hero-document-text" class="mr-3 h-5 w-5"/>
+                  Agreements
+                </.link>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Account</h3>
+              <div class="mt-2 space-y-1">
+                <.link navigate={~p"/tenant/profile"} class="flex items-center px-3 py-2 text-sm rounded-lg text-gray-600 hover:bg-gray-50">
+                  <.icon name="hero-user" class="mr-3 h-5 w-5"/>
+                  Profile
+                </.link>
+                <.link navigate={~p"/tenant/reminders"} class="flex items-center px-3 py-2 text-sm rounded-lg text-gray-600 hover:bg-gray-50">
+                  <.icon name="hero-bell" class="mr-3 h-5 w-5"/>
+                  Notifications
+                </.link>
+              </div>
+            </div>
+          </nav>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+          <!-- Top Header -->
+          <header class="bg-white shadow">
+            <div class="w-full px-4 sm:px-6 lg:px-8">
+              <div class="flex justify-between h-16 items-center">
+                <!-- Mobile menu button -->
+                <button type="button" class="md:hidden p-2 text-gray-500 hover:text-gray-600">
+                  <.icon name="hero-bars-3" class="h-6 w-6"/>
+                </button>
+
+                <div class="flex items-center gap-4">
+                  <div class="relative">
+                    <.link navigate={~p"/tenant/reminders"} class="p-2 text-gray-600 hover:text-gray-900 block">
+                      <.icon name="hero-bell" class="h-6 w-6" />
+                    </.link>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <%= if @current_user.photo do %>
+                      <img src={@current_user.photo} class="h-12 w-12 rounded-full" alt="Profile photo" />
+                    <% else %>
+                      <.icon name="hero-user-circle" class="h-12 w-12 text-gray-400" />
+                    <% end %>
+                    <span class="text-sm font-medium text-gray-700">
+                      Welcome, <%= @current_user.full_name %>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <!-- Main Content -->
+          <main class="flex-1 overflow-y-auto bg-gray-50">
+            <!-- Stats Dashboard -->
+            <%= if assigns[:dashboard_stats] do %>
+              <div class="bg-white shadow-sm">
+                <div class="w-full px-4 lg:px-8 xl:px-12">
+                  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 py-6">
+                    <div class="p-6 rounded-lg bg-indigo-50">
+                      <div class="text-sm text-indigo-600 font-medium">Total Views</div>
+                      <div class="text-2xl font-bold text-indigo-900"><%= @dashboard_stats.total_views %></div>
+                    </div>
+                    <div class="p-6 rounded-lg bg-green-50">
+                      <div class="text-sm text-green-600 font-medium">Active Listings</div>
+                      <div class="text-2xl font-bold text-green-900"><%= @dashboard_stats.active_listings %></div>
+                    </div>
+                    <div class="p-6 rounded-lg bg-blue-50">
+                      <div class="text-sm text-blue-600 font-medium">Messages</div>
+                      <div class="text-2xl font-bold text-blue-900"><%= @dashboard_stats.messages_count %></div>
+                    </div>
+                    <div class="p-6 rounded-lg bg-purple-50">
+                      <div class="text-sm text-purple-600 font-medium">Saved Properties</div>
+                      <div class="text-2xl font-bold text-purple-900"><%= @dashboard_stats.saved_properties %></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+
+            <!-- Regular Content Area -->
+            <div class="px-4 sm:px-6 lg:px-8 py-8">
+              <.flash_group flash={@flash} />
+              <%= @inner_content %>
+              
+              <!-- Notifications Section -->
+              <%= if assigns[:notifications] && length(@notifications) > 0 do %>
+                <div class="mt-8">
+                  <!-- Your existing notifications section -->
+                </div>
+              <% end %>
+            </div>
+          </main>
+        </div>
+      </div>
+    <% else %>
+      <main class="w-full px-4 lg:px-8 xl:px-12">
+        <div class="mx-auto max-w-7xl">
+          <.flash_group flash={@flash} />
+          <div class="bg-white rounded-lg shadow-sm p-6 my-6">
+            <%= @inner_content %>
+          </div>
+        </div>
+      </main>
+    <% end %>
+  </body>
+</html>

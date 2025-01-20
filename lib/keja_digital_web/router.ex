@@ -26,7 +26,6 @@ defmodule KejaDigitalWeb.Router do
 
     get "/", PageController, :home
 
-    live "/analytics/views", AnalyticsLive.Views
     live "/properties/active", PropertiesLive.Active
     live "/properties/saved", PropertiesLive.Saved
     live "/messages", MessagesLive.Index
@@ -95,6 +94,7 @@ defmodule KejaDigitalWeb.Router do
       live "/tenant/reminders", UserPaymentLive
       live "/tenant/payments", MpesaPaymentLive
       live "/tenant/dashboard", Tenant.DashboardLive, :index
+      live "/analytics/views", AnalyticsLive.Views
 
     end
   end

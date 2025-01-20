@@ -20,23 +20,24 @@ defmodule KejaDigital.Analytics do
     |> Repo.all()
   end
 
-  def track_view(page_path, tracking_info \\ %{}) do
+  def track_view(page_path, tracking_info, user \\ nil) do
     today = Date.utc_today()
-
     attrs = Map.merge(tracking_info, %{
       path: page_path,
       view_count: 1,
-      viewed_on: today
+      viewed_on: today,
+      viewer_id: user && user.id,
+      viewer_type: if(user, do: "user", else: "guest")
     })
 
     result = Repo.insert(
-      %PageView{} |> PageView.changeset(attrs),
+      %PageView{}
+      |> PageView.changeset(attrs),
       on_conflict: [inc: [view_count: 1]],
-      conflict_target: [:path, :viewed_on]
+      conflict_target: [:path, :viewed_on, :viewer_id]
     )
 
     broadcast_update()
-
     result
   end
 
@@ -48,6 +49,23 @@ defmodule KejaDigital.Analytics do
       total_views: sum(pv.view_count)
     })
     |> order_by([pv], desc: sum(pv.view_count))
+    |> limit(^limit)
+    |> Repo.all()
+  end
+
+  def get_views_by_user(limit \\ 10) do
+    PageView
+    |> where([pv], not is_nil(pv.viewer_id))
+    |> join(:left, [pv], u in "users", on: u.id == pv.viewer_id)
+    |> group_by([pv, u], [u.id, u.email, u.full_name])
+    |> select([pv, u], %{
+      user_id: u.id,
+      email: u.email,
+      name: u.full_name,
+      total_views: sum(pv.view_count),
+      last_viewed: max(pv.viewed_on)
+    })
+    |> order_by([pv, u], [desc: sum(pv.view_count)])
     |> limit(^limit)
     |> Repo.all()
   end

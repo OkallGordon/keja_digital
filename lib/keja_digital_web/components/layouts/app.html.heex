@@ -13,45 +13,11 @@
   </head>
   <body class="h-full">
     <%= if @current_user do %>
-      <div class="flex h-screen bg-gray-50">
+      <div class="flex h-full flex-col">
         <!-- Left Sidebar -->
         <div class="hidden md:flex md:w-64 md:flex-col bg-white shadow-lg">
           <!-- Logo/Brand -->
-
-          <!-- Navigation Menu -->
-          <nav class="flex-1 px-4 py-4 space-y-4">
-            <div>
-              <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Main Menu</h3>
-              <div class="mt-2 space-y-1">
-                <.link navigate={~p"/tenant/dashboard"} class="flex items-center px-3 py-2 text-sm rounded-lg bg-blue-50 text-blue-700">
-                  <.icon name="hero-home" class="mr-3 h-5 w-5"/>
-                  Dashboard
-                </.link>
-                <.link navigate={~p"/tenant/payments"} class="flex items-center px-3 py-2 text-sm rounded-lg text-gray-600 hover:bg-gray-50">
-                  <.icon name="hero-currency-dollar" class="mr-3 h-5 w-5"/>
-                  Payments
-                </.link>
-                <.link navigate={~p"/tenant_agreements"} class="flex items-center px-3 py-2 text-sm rounded-lg text-gray-600 hover:bg-gray-50">
-                  <.icon name="hero-document-text" class="mr-3 h-5 w-5"/>
-                  Agreements
-                </.link>
-              </div>
-            </div>
-
-            <div>
-              <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Account</h3>
-              <div class="mt-2 space-y-1">
-                <.link navigate={~p"/tenant/profile"} class="flex items-center px-3 py-2 text-sm rounded-lg text-gray-600 hover:bg-gray-50">
-                  <.icon name="hero-user" class="mr-3 h-5 w-5"/>
-                  Profile
-                </.link>
-                <.link navigate={~p"/tenant/reminders"} class="flex items-center px-3 py-2 text-sm rounded-lg text-gray-600 hover:bg-gray-50">
-                  <.icon name="hero-bell" class="mr-3 h-5 w-5"/>
-                  Notifications
-                </.link>
-              </div>
-            </div>
-          </nav>
+          <!-- Navigation Menu Removed -->
         </div>
 
         <!-- Main Content Area -->
@@ -64,7 +30,6 @@
                 <button type="button" class="md:hidden p-2 text-gray-500 hover:text-gray-600">
                   <.icon name="hero-bars-3" class="h-6 w-6"/>
                 </button>
-
                 <div class="flex items-center gap-4">
                   <div class="relative">
                     <.link navigate={~p"/tenant/reminders"} class="p-2 text-gray-600 hover:text-gray-900 block">
@@ -115,7 +80,7 @@
             <% end %>
 
             <!-- Regular Content Area -->
-            <div class="px-4 sm:px-6 lg:px-8 py-8">
+            <div class="px-4 sm:px-6 lg:px-8 py-8 overflow-auto">
               <.flash_group flash={@flash} />
               <%= @inner_content %>
               

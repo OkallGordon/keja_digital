@@ -38,7 +38,7 @@ defmodule KejaDigitalWeb.AnalyticsLive.Views do
      |> assign(:views_by_date, views_by_date)}
   end
 
-  def handle_info(:stats_updated, socket) do
+  def handle_info(:update_stats, socket) do
     socket =
       socket
       |> assign(:total_views, Analytics.get_total_views())
@@ -47,6 +47,10 @@ defmodule KejaDigitalWeb.AnalyticsLive.Views do
       |> assign(:user_views, Analytics.get_views_by_user(10))
 
     {:noreply, socket}
+  end
+
+  def handle_info(_, socket) do
+   {:noreply, socket}
   end
 
   def render(assigns) do

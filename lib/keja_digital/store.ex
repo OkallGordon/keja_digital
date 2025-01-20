@@ -9,6 +9,20 @@ defmodule KejaDigital.Store do
   alias KejaDigital.Store.{User, UserToken, UserNotifier, DoorNumber}
   alias KejaDigital.AuditLogger
 
+  alias KejaDigital.Properties.Property
+
+  def count_active_listings do
+    Property
+    |> where([p], p.status == "active")
+    |> Repo.aggregate(:count, :id) || 0
+  end
+
+  def count_saved_properties do
+    Property
+    |> where([p], p.saved == true)
+    |> Repo.aggregate(:count, :id) || 0
+  end
+
     def change_user(user, attrs \\ %{}) do
     User.registration_changeset(user, attrs)
   end

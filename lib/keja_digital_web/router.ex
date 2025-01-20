@@ -25,6 +25,11 @@ defmodule KejaDigitalWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    live "/analytics/views", AnalyticsLive.Views
+    live "/properties/active", PropertiesLive.Active
+    live "/properties/saved", PropertiesLive.Saved
+    live "/messages", MessagesLive.Index
   end
 
   scope "/api", KejaDigitalWeb do

@@ -18,11 +18,9 @@ defmodule KejaDigitalWeb.PropertiesLive.Active do
       end
 
     {:ok,
-     assign(socket,
-       current_user: current_user,
-       properties: list_properties(),
-       active_listings: Properties.count_active_listings(),
-       saved_properties: Properties.count_saved_properties(),
+     socket
+     |> assign(current_user: current_user)
+     |> assign(
        filters: %{
          status: nil,
          type: nil,
@@ -32,54 +30,71 @@ defmodule KejaDigitalWeb.PropertiesLive.Active do
          sort_by: "inserted_at",
          sort_order: "desc"
        }
-     )}
+     )
+     |> load_properties()
+     |> load_stats()}
   end
 
   @impl true
   def handle_event("filter", %{"filters" => filters}, socket) do
     {:noreply,
-     assign(socket,
-       properties: list_properties(filters),
-       filters: Map.merge(socket.assigns.filters, atomize_keys(filters))
-     )}
+     socket
+     |> assign(filters: Map.merge(socket.assigns.filters, atomize_keys(filters)))
+     |> load_properties()}
   end
 
   @impl true
   def handle_event("toggle-saved", %{"id" => property_id}, socket) do
-    {:ok, _property} = Properties.toggle_saved(property_id)
-    {:noreply, socket}
+    case Properties.toggle_saved(property_id) do
+      {:ok, _property} ->
+        {:noreply,
+         socket
+         |> load_stats()}
+
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, "Could not update saved status")}
+    end
   end
 
+  # Handle property updates
   @impl true
-  def handle_info({:property_created, _property}, socket) do
+  def handle_info({event, _property}, socket)
+      when event in [:property_created, :property_updated] do
     {:noreply,
-     assign(socket,
-       properties: list_properties(socket.assigns.filters),
-       active_listings: Properties.count_active_listings(),
-       saved_properties: Properties.count_saved_properties()
-     )}
+     socket
+     |> load_properties()
+     |> load_stats()}
   end
 
-  @impl true
-  def handle_info({:property_updated, _property}, socket) do
-    {:noreply,
-     assign(socket,
-       properties: list_properties(socket.assigns.filters),
-       active_listings: Properties.count_active_listings(),
-       saved_properties: Properties.count_saved_properties()
-     )}
-  end
-
+  # Handle stats updates from PubSub
   @impl true
   def handle_info(:stats_updated, socket) do
-    {:noreply,
-     assign(socket,
-       active_listings: Properties.count_active_listings(),
-       saved_properties: Properties.count_saved_properties()
-     )}
+    {:noreply, load_stats(socket)}
   end
 
-  defp list_properties(filters \\ %{}) do
+  # Handle stats updates from QuickStatsComponent
+  @impl true
+  def handle_info(:update_stats, socket) do
+    {:noreply, load_stats(socket)}
+  end
+
+  # Add catch-all handler for any unhandled messages
+  @impl true
+  def handle_info(_, socket), do: {:noreply, socket}
+
+  # Private functions
+  defp load_properties(socket) do
+    properties = list_properties(socket.assigns.filters)
+    assign(socket, :properties, properties)
+  end
+
+  defp load_stats(socket) do
+    socket
+    |> assign(:active_listings, Properties.count_active_listings())
+    |> assign(:saved_properties, Properties.count_saved_properties())
+  end
+
+  defp list_properties(filters) do
     filters
     |> Map.take([:status, :type, :owner_id, :min_price, :max_price, :sort_by, :sort_order])
     |> Enum.reject(fn {_k, v} -> is_nil(v) || v == "" end)

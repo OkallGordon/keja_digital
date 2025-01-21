@@ -18,7 +18,8 @@ defmodule KejaDigitalWeb.PropertiesLive.Saved do
         min_price: nil,
         max_price: nil,
         sort_by: "inserted_at",
-        sort_order: "desc"
+        sort_order: "desc",
+        quick_stats: get_updated_stats()  # Initial quick stats
       )
 
       {:ok, socket}
@@ -111,6 +112,25 @@ defmodule KejaDigitalWeb.PropertiesLive.Saved do
     else
       {:noreply, socket}
     end
+  end
+
+  @impl true
+  def handle_info(:update_stats, socket) do
+    # Logic to fetch and update stats (you can customize this based on your needs)
+    updated_stats = get_updated_stats()
+
+    # Update the socket with the new stats
+    {:noreply, assign(socket, quick_stats: updated_stats)}
+  end
+
+  # Private function to get the updated statistics
+  defp get_updated_stats do
+    # Example of how you might retrieve stats (e.g., total number of properties, saved properties)
+    %{
+      total_views: 100,   # Example stat
+      active_listings: 20,  # Example stat
+      saved_properties: 15  # Example stat
+    }
   end
 
   @impl true

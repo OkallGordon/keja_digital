@@ -95,6 +95,7 @@ defmodule KejaDigitalWeb.Router do
       live "/tenant/payments", MpesaPaymentLive
       live "/tenant/dashboard", Tenant.DashboardLive, :index
       live "/analytics/views", AnalyticsLive.Views
+      live "/properties", PropertiesLive
 
     end
   end

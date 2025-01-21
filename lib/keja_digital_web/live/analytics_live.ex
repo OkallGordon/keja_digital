@@ -16,11 +16,11 @@ defmodule KejaDigitalWeb.AnalyticsLive.Views do
     socket =
       socket
       |> assign(:total_views, Analytics.get_total_views())
-      |> assign(:popular_pages, Analytics.get_popular_pages(10))
+      |> assign(:popular_pages, Analytics.get_popular_pages(1000000))
       |> assign(:start_date, start_date)
       |> assign(:end_date, end_date)
       |> assign(:views_by_date, Analytics.get_views_by_date_range(start_date, end_date))
-      |> assign(:user_views, Analytics.get_views_by_user(10))
+      |> assign(:user_views, Analytics.get_views_by_user(1000000))
 
     {:ok, socket}
   end

@@ -62,24 +62,6 @@
                 <button type="button" class="md:hidden p-2 text-gray-500 hover:text-gray-600">
                   <.icon name="hero-bars-3" class="h-6 w-6"/>
                 </button>
-
-                <div class="flex items-center gap-4">
-                  <div class="relative">
-                    <.link navigate={~p"/tenant/reminders"} class="p-2 text-gray-600 hover:text-gray-900 block">
-                      <.icon name="hero-bell" class="h-6 w-6" />
-                    </.link>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <%= if @current_user.photo do %>
-                      <img src={@current_user.photo} class="h-12 w-12 rounded-full" alt="Profile photo" />
-                    <% else %>
-                      <.icon name="hero-user-circle" class="h-12 w-12 text-gray-400" />
-                    <% end %>
-                    <span class="text-sm font-medium text-gray-700">
-                      Welcome, <%= @current_user.full_name %>
-                    </span>
-                  </div>
-                </div>
               </div>
             </div>
           </header>

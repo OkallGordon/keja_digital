@@ -1,7 +1,6 @@
 defmodule KejaDigitalWeb.Tenant.DashboardLive do
   use KejaDigitalWeb, :live_view
   alias KejaDigital.Store
-  # alias KejaDigital.Agreements
   alias KejaDigital.Payments
 
   import Number.Currency
@@ -34,7 +33,7 @@ defmodule KejaDigitalWeb.Tenant.DashboardLive do
   end
 
   @impl true
-  def handle_info(:update_dashboard, socket) do
+  def handle_info(:update_stats, socket) do
     {:noreply, assign_defaults(socket)}
   end
 
@@ -53,8 +52,7 @@ defmodule KejaDigitalWeb.Tenant.DashboardLive do
   end
 
   defp get_pending_rent(_user) do
-    # You might need to adjust this based on your schema
-    %{amount: 0.00, due_date: Date.utc_today()} # temporary placeholder
+    %{amount: 0.00, due_date: Date.utc_today()}
   end
 
   defp list_notifications(user) do
@@ -62,14 +60,12 @@ defmodule KejaDigitalWeb.Tenant.DashboardLive do
   end
 
   defp get_agreement_status(_user) do
-    # You might need to adjust this based on your schema
-    %{status: "Active", valid_until: Date.utc_today() |> Date.add(365)} # temporary placeholder
+    %{status: "Active", valid_until: Date.utc_today() |> Date.add(365)}
   end
 
   defp format_currency(amount) do
     "KES #{:erlang.float_to_binary(amount, decimals: 2)}"
   end
-
   @impl true
   def render(assigns) do
     ~H"""

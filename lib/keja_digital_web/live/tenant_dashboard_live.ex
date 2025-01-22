@@ -18,69 +18,13 @@ defmodule KejaDigitalWeb.Tenant.DashboardLive do
   end
 
   @impl true
-  def handle_event("view_all_payments", _params, socket) do
-    {:noreply, push_navigate(socket, to: ~p"/tenant/payments")}
-  end
-
-  @impl true
-  def handle_event("view_agreement", _params, socket) do
-    {:noreply, push_navigate(socket, to: ~p"/tenant_agreements/:id")}
-  end
-
-  @impl true
-  def handle_event("view_notifications", _params, socket) do
-    {:noreply, push_navigate(socket, to: ~p"/tenant/reminders")}
-  end
-
-  # Add this handler for :update_stats
-  @impl true
-  def handle_info(:update_stats, socket) do
-    {:noreply, assign_defaults(socket)}
-  end
-
-  @impl true
-  def handle_info(:update_dashboard, socket) do
-    {:noreply, assign_defaults(socket)}
-  end
-
-  defp assign_defaults(socket) do
-    user = socket.assigns.current_user
-
-    socket
-    |> assign(:recent_payments, list_recent_payments(user))
-    |> assign(:pending_rent, get_pending_rent(user))
-    |> assign(:notifications, list_notifications(user))
-    |> assign(:agreement_status, get_agreement_status(user))
-  end
-
-  defp list_recent_payments(user) do
-    Payments.list_tenant_payments(user.id, limit: 3)
-  end
-
-  defp get_pending_rent(_user) do
-    %{amount: 0.00, due_date: Date.utc_today()}
-  end
-
-  defp list_notifications(user) do
-    Store.list_tenant_notifications(user.id, limit: 5)
-  end
-
-  defp get_agreement_status(_user) do
-    %{status: "Active", valid_until: Date.utc_today() |> Date.add(365)}
-  end
-
-  defp format_currency(amount) do
-    "KES #{:erlang.float_to_binary(amount, decimals: 2)}"
-  end
-
-  @impl true
   def render(assigns) do
     ~H"""
     <div class="space-y-6">
       <!-- Stats Overview -->
       <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <!-- Pending Rent Card -->
-        <.link navigate={~p"/tenant_agreements"} class="block">
+        <a href="/tenant_agreements" class="block">
           <div class="bg-white overflow-hidden shadow rounded-lg">
             <div class="p-5">
               <div class="flex items-center">
@@ -99,10 +43,10 @@ defmodule KejaDigitalWeb.Tenant.DashboardLive do
               </div>
             </div>
           </div>
-        </.link>
+        </a>
 
         <!-- Agreement Status Card -->
-        <.link navigate={~p"/tenant_agreements/:id"} class="block">
+        <a href="/tenant_agreements/:id" class="block">
           <div class="bg-white overflow-hidden shadow rounded-lg">
             <div class="p-5">
               <div class="flex items-center">
@@ -121,7 +65,7 @@ defmodule KejaDigitalWeb.Tenant.DashboardLive do
               </div>
             </div>
           </div>
-        </.link>
+        </a>
       </div>
 
       <!-- Personal Information -->
@@ -182,9 +126,9 @@ defmodule KejaDigitalWeb.Tenant.DashboardLive do
         <div class="p-6">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-lg font-medium text-gray-900">Recent Payments</h2>
-            <.link navigate={~p"/tenant/payments"} class="text-sm text-blue-600 hover:text-blue-800">
+            <a href="/tenant/payments" class="text-sm text-blue-600 hover:text-blue-800">
               View All
-            </.link>
+            </a>
           </div>
           <div class="flow-root">
             <ul role="list" class="-my-5 divide-y divide-gray-200">
@@ -248,5 +192,45 @@ defmodule KejaDigitalWeb.Tenant.DashboardLive do
       <% end %>
     </div>
     """
+  end
+
+  @impl true
+  def handle_info(:update_stats, socket) do
+    {:noreply, assign_defaults(socket)}
+  end
+
+  @impl true
+  def handle_info(:update_dashboard, socket) do
+    {:noreply, assign_defaults(socket)}
+  end
+
+  defp assign_defaults(socket) do
+    user = socket.assigns.current_user
+
+    socket
+    |> assign(:recent_payments, list_recent_payments(user))
+    |> assign(:pending_rent, get_pending_rent(user))
+    |> assign(:notifications, list_notifications(user))
+    |> assign(:agreement_status, get_agreement_status(user))
+  end
+
+  defp list_recent_payments(user) do
+    Payments.list_tenant_payments(user.id, limit: 3)
+  end
+
+  defp get_pending_rent(_user) do
+    %{amount: 0.00, due_date: Date.utc_today()}
+  end
+
+  defp list_notifications(user) do
+    Store.list_tenant_notifications(user.id, limit: 5)
+  end
+
+  defp get_agreement_status(_user) do
+    %{status: "Active", valid_until: Date.utc_today() |> Date.add(365)}
+  end
+
+  defp format_currency(amount) do
+    "KES #{:erlang.float_to_binary(amount, decimals: 2)}"
   end
 end

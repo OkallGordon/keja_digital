@@ -1,105 +1,121 @@
-<!DOCTYPE html>
-<html lang="en" class="h-full bg-gray-50">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="csrf-token" content={get_csrf_token()} />
-    <.live_title suffix=" · Keja Digital">
-      <%= assigns[:page_title] || "Dashboard" %>
-    </.live_title>
-    <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
-    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
-    </script>
-  </head>
-  <body class="h-full">
-    <%= if @current_user do %>
-      <div class="flex h-screen bg-gray-50">
-        <!-- Left Sidebar -->
-        <div class="hidden md:flex md:w-64 md:flex-col bg-white shadow-lg">
-          <!-- Navigation Menu -->
-          <nav class="flex-1 px-4 py-4 space-y-4">
-            <div>
-              <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Main Menu</h3>
-              <div class="mt-2 space-y-1">
-                <!-- Changed from .link to <a> tags for direct navigation -->
-                <a href="/tenant/dashboard" class="flex items-center px-3 py-2 text-sm rounded-lg bg-blue-50 text-blue-700">
-                  <.icon name="hero-home" class="mr-3 h-5 w-5"/>
-                  Dashboard
-                </a>
-                <a href="/tenant/payments" class="flex items-center px-3 py-2 text-sm rounded-lg text-gray-600 hover:bg-gray-50">
-                  <.icon name="hero-currency-dollar" class="mr-3 h-5 w-5"/>
-                  Payments
-                </a>
-                <a href="/tenant_agreements" class="flex items-center px-3 py-2 text-sm rounded-lg text-gray-600 hover:bg-gray-50">
-                  <.icon name="hero-document-text" class="mr-3 h-5 w-5"/>
-                  Agreements
-                </a>
-              </div>
-            </div>
-
-            <div>
-              <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Account</h3>
-              <div class="mt-2 space-y-1">
-                <a href="/tenant/profile" class="flex items-center px-3 py-2 text-sm rounded-lg text-gray-600 hover:bg-gray-50">
-                  <.icon name="hero-user" class="mr-3 h-5 w-5"/>
-                  Profile
-                </a>
-                <a href="/tenant/reminders" class="flex items-center px-3 py-2 text-sm rounded-lg text-gray-600 hover:bg-gray-50">
-                  <.icon name="hero-bell" class="mr-3 h-5 w-5"/>
-                  Notifications
-                </a>
-              </div>
-            </div>
-          </nav>
-        </div>
-
-        <!-- Main Content Area -->
-        <div class="flex-1 flex flex-col overflow-hidden">
-          <!-- Top Header -->
-          <header class="bg-white shadow">
-            <div class="w-full px-4 sm:px-6 lg:px-8">
-              <div class="flex justify-between h-16 items-center">
-                <!-- Mobile menu button -->
-                <button type="button" class="md:hidden p-2 text-gray-500 hover:text-gray-600">
-                  <.icon name="hero-bars-3" class="h-6 w-6"/>
-                </button>
-              </div>
-            </div>
-          </header>
-
-          <!-- Main Content -->
-          <main class="flex-1 overflow-y-auto bg-gray-50">
-            <!-- Quick Stats Bar -->
-            <%= if @current_user || @current_admin do %>
-              <.live_component
-                module={KejaDigitalWeb.QuickStatsComponent}
-                id="quick-stats"
-                current_user={@current_user}
-              />
-            <% end %>
-
-            <!-- Regular Content Area -->
-            <div class="px-4 sm:px-6 lg:px-8 py-8">
-              <.flash_group flash={@flash} />
-              <%= @inner_content %>
-              
-              <%= if assigns[:notifications] && length(@notifications) > 0 do %>
-                <div class="mt-8">
-                </div>
-              <% end %>
-            </div>
-          </main>
-        </div>
-      </div>
-    <% else %>
-      <main class="w-full px-4 lg:px-8 xl:px-12">
-        <div class="mx-auto max-w-7xl">
-          <.flash_group flash={@flash} />
-          <div class="bg-white rounded-lg shadow-sm p-6 my-6">
-            <%= @inner_content %>
+<div class="min-h-screen">
+  <!-- Top Navigation Bar -->
+  <nav class="bg-white shadow-sm fixed w-full z-50">
+    <div class="w-full px-4 lg:px-8 xl:px-12">
+      <div class="flex justify-between h-16">
+        <!-- Left side - Logo -->
+        <div class="flex">
+          <div class="flex-shrink-0 flex items-center">
+            <span class="text-2xl font-bold text-indigo-600">KejaDigital</span>
           </div>
         </div>
+
+        <!-- Right side - User Menu -->
+        <div class="flex items-center">
+          <%= if assigns[:current_user] do %>
+            <div class="ml-3 relative flex items-center gap-4">
+              <span class="text-gray-600 text-sm">
+                Welcome back, <%= String.split(@current_user.email, "@") |> List.first() %>
+              </span>
+              <img class="h-8 w-8 rounded-full bg-gray-200" src="/api/placeholder/32/32" alt="Profile" />
+              <div class="flex gap-4">
+                <.link
+                  href={~p"/users/settings"}
+                  class="text-sm text-gray-700 hover:text-indigo-600 font-medium flex items-center gap-2"
+                >
+                  <.icon name="hero-cog-6-tooth" class="h-5 w-5"/>
+                  Settings
+                </.link>
+                <.link
+                  href={~p"/users/log_out"}
+                  method="delete"
+                  class="text-sm text-red-600 hover:text-red-800 font-medium flex items-center gap-2"
+                >
+                  <.icon name="hero-arrow-right-on-rectangle" class="h-5 w-5"/>
+                  Log out
+                </.link>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="flex h-screen bg-gray-50 pt-16">
+    <!-- Left Sidebar -->
+    <div class="hidden md:flex md:w-64 md:flex-col bg-white shadow-lg">
+      <!-- Navigation Menu -->
+      <nav class="flex-1 px-4 py-4 space-y-4">
+        <div>
+          <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Main Menu</h3>
+          <div class="mt-2 space-y-1">
+            <a href="/tenant/dashboard" class="flex items-center px-3 py-2 text-sm rounded-lg bg-blue-50 text-blue-700">
+              <.icon name="hero-home" class="mr-3 h-5 w-5"/>
+              Dashboard
+            </a>
+            <a href="/tenant/payments" class="flex items-center px-3 py-2 text-sm rounded-lg text-gray-600 hover:bg-gray-50">
+              <.icon name="hero-currency-dollar" class="mr-3 h-5 w-5"/>
+              Payments
+            </a>
+            <a href="/tenant_agreements" class="flex items-center px-3 py-2 text-sm rounded-lg text-gray-600 hover:bg-gray-50">
+              <.icon name="hero-document-text" class="mr-3 h-5 w-5"/>
+              Agreements
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Account</h3>
+          <div class="mt-2 space-y-1">
+            <a href="/tenant/profile" class="flex items-center px-3 py-2 text-sm rounded-lg text-gray-600 hover:bg-gray-50">
+              <.icon name="hero-user" class="mr-3 h-5 w-5"/>
+              Profile
+            </a>
+            <a href="/tenant/reminders" class="flex items-center px-3 py-2 text-sm rounded-lg text-gray-600 hover:bg-gray-50">
+              <.icon name="hero-bell" class="mr-3 h-5 w-5"/>
+              Notifications
+            </a>
+          </div>
+        </div>
+      </nav>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <!-- Mobile menu button -->
+      <header class="bg-white shadow md:hidden">
+        <div class="w-full px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between h-16 items-center">
+            <button type="button" class="p-2 text-gray-500 hover:text-gray-600">
+              <.icon name="hero-bars-3" class="h-6 w-6"/>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="flex-1 overflow-y-auto bg-gray-50">
+        <!-- Quick Stats Bar -->
+        <%= if assigns[:current_user] do %>
+          <.live_component
+            module={KejaDigitalWeb.QuickStatsComponent}
+            id="quick-stats"
+            current_user={@current_user}
+          />
+        <% end %>
+
+        <!-- Regular Content Area -->
+        <div class="px-4 sm:px-6 lg:px-8 py-8">
+          <.flash_group flash={@flash} />
+          <%= @inner_content %>
+          
+          <%= if assigns[:notifications] && length(@notifications) > 0 do %>
+            <div class="mt-8">
+            </div>
+          <% end %>
+        </div>
       </main>
-    <% end %>
-  </body>
-</html>
+    </div>
+  </div>
+</div>

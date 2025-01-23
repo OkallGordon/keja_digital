@@ -4,8 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
-    <.live_title suffix=" · Phoenix Framework">
-      <%= assigns[:page_title] || "KejaDigital" %>
+    <.live_title suffix=" · Pollet's and Okoth Rentals">
+      <%= assigns[:page_title] || "Keja Digital" %>
     </.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}></script>
@@ -17,7 +17,7 @@
         <div class="flex justify-between h-16">
           <!-- Logo -->
           <div class="flex-shrink-0 flex items-center">
-            <span class="text-2xl font-bold text-indigo-600">KejaDigital</span>
+            <span class="text-2xl font-bold text-indigo-600">Pollet's & Okoth Rentals</span>
           </div>
 
           <!-- Authentication Links -->
@@ -89,6 +89,7 @@
     <div class="pt-16">
       <%= @inner_content %>
     </div>
+
     <!-- Footer -->
     <footer class="bg-gray-50 border-t border-gray-200">
       <div class="w-full px-4 lg:px-8 xl:px-12 py-8">
@@ -96,17 +97,21 @@
           <div>
             <h3 class="text-sm font-semibold text-gray-900 tracking-wider uppercase">About</h3>
             <p class="mt-4 text-sm text-gray-600">
-              KejaDigital is your trusted platform for finding and managing rental properties across Kenya.
+              Pollet's and Okoth Rentals provide comfortable, secure, and affordable rooms in Manyatta B, Kisumu. 
+              Our mission is to offer quality housing solutions for tenants.
             </p>
           </div>
           <div>
-            <h3 class="text-sm font-semibold text-gray-900 tracking-wider uppercase">Quick Links</h3>
+            <h3 class="text-sm font-semibold text-gray-900 tracking-wider uppercase">Properties</h3>
             <ul class="mt-4 space-y-2">
               <li>
-                <a href="#" class="text-sm text-gray-600 hover:text-indigo-600">Browse Properties</a>
-              </li>
-              <li>
-                <a href="#" class="text-sm text-gray-600 hover:text-indigo-600">List Property</a>
+                <.link 
+                  href={~p"/properties/available/and_pricing"}
+                  class="text-sm text-gray-600 hover:text-indigo-600"
+                >
+                  Available Rooms and their Pricing
+                </.link>
+
               </li>
             </ul>
           </div>
@@ -114,10 +119,28 @@
             <h3 class="text-sm font-semibold text-gray-900 tracking-wider uppercase">Support</h3>
             <ul class="mt-4 space-y-2">
               <li>
-                <a href="#" class="text-sm text-gray-600 hover:text-indigo-600">Help Center</a>
+                <.link 
+                  href={~p"/support/contact"}
+                  class="text-sm text-gray-600 hover:text-indigo-600"
+                >
+                  Contact Us
+                </.link>
               </li>
               <li>
-                <a href="#" class="text-sm text-gray-600 hover:text-indigo-600">Contact Us</a>
+                <.link 
+                  href={~p"/support/faq"}
+                  class="text-sm text-gray-600 hover:text-indigo-600"
+                >
+                  Frequently Asked Questions
+                </.link>
+              </li>
+              <li>
+                <.link 
+                  href={~p"/support/booking"}
+                  class="text-sm text-gray-600 hover:text-indigo-600"
+                >
+                  Booking Process
+                </.link>
               </li>
             </ul>
           </div>
@@ -125,17 +148,35 @@
             <h3 class="text-sm font-semibold text-gray-900 tracking-wider uppercase">Legal</h3>
             <ul class="mt-4 space-y-2">
               <li>
-                <a href="#" class="text-sm text-gray-600 hover:text-indigo-600">Privacy Policy</a>
+                <.link 
+                  href={~p"/legal/privacy"}
+                  class="text-sm text-gray-600 hover:text-indigo-600"
+                >
+                  Privacy Policy
+                </.link>
               </li>
               <li>
-                <a href="#" class="text-sm text-gray-600 hover:text-indigo-600">Terms of Service</a>
+                <.link 
+                  href={~p"/legal/terms"}
+                  class="text-sm text-gray-600 hover:text-indigo-600"
+                >
+                  Terms of Service
+                </.link>
+              </li>
+              <li>
+                <.link 
+                  href={~p"/legal/rental-agreement"}
+                  class="text-sm text-gray-600 hover:text-indigo-600"
+                >
+                  Rental Agreement
+                </.link>
               </li>
             </ul>
           </div>
         </div>
         <div class="mt-8 pt-8 border-t border-gray-200">
           <p class="text-sm text-gray-400 text-center">
-            © 2024 KejaDigital. All rights reserved.
+            © 2024 Pollet's and Okoth Rentals. All rights reserved.
           </p>
         </div>
       </div>

@@ -211,7 +211,7 @@ defmodule KejaDigitalWeb.PropertiesLive.Saved do
               Start exploring our available properties and save your favorites to view them here.
             </p>
             <.link
-              navigate={~p"/properties"}
+              navigate={~p"/properties/active"}
               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Browse Properties

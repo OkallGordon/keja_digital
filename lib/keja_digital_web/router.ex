@@ -26,9 +26,17 @@ defmodule KejaDigitalWeb.Router do
 
     get "/", PageController, :home
 
-    live "/properties/active", PropertiesLive.Active
     live "/properties/saved", PropertiesLive.Saved
     live "/messages", MessagesLive.Index
+    live "/support/faq", FaqLive
+    live "/support/booking", SupportBookingLive
+
+    get "/properties/available/and_pricing", PropertyController, :available
+
+    get "/support/contact", SupportController, :contact
+
+    get "/legal/privacy", LegalController, :privacy
+
   end
 
   scope "/api", KejaDigitalWeb do
@@ -95,7 +103,7 @@ defmodule KejaDigitalWeb.Router do
       live "/tenant/payments", MpesaPaymentLive
       live "/tenant/dashboard", Tenant.DashboardLive, :index
       live "/analytics/views", AnalyticsLive.Views
-      live "/properties", PropertiesLive
+      live "/properties/active", PropertiesLive.Active
 
     end
   end

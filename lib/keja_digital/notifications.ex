@@ -59,6 +59,38 @@ defmodule KejaDigital.Notifications do
   """
   def get_notification!(id), do: Repo.get!(Notification, id)
 
+   @doc """
+  Creates a notification based on a booking.
+
+  ## Parameters
+    - booking: The booking struct for which the notification is being created
+    - admin_id: The admin id who will receive the notification
+
+  ## Returns
+    - {:ok, notification} if successful
+    - {:error, changeset} if validation fails
+  """
+  def create_notification_for_booking(booking, admin_id) do
+    IO.inspect(booking, label: "Booking Data")
+
+    notification_attrs = %{
+      title: "New Support Booking: #{booking.booking_type}",
+      content: """
+      A new booking has been made with the following details:
+      - Description: #{booking.description}
+      - Name: #{booking.first_name} #{booking.last_name}
+      - Phone: #{booking.phone}
+      - Preferred Date: #{booking.preferred_date}
+      """,
+      admin_id: admin_id,
+      is_read: false
+    }
+    IO.inspect(notification_attrs, label: "Notification Attributes")
+
+    create_notification(notification_attrs)
+  end
+
+
   @doc """
   Creates a notification.
 
@@ -72,9 +104,16 @@ defmodule KejaDigital.Notifications do
 
   """
   def create_notification(attrs \\ %{}) do
-    %Notification{}
-    |> Notification.changeset(attrs)
-    |> Repo.insert()
+    changeset = Notification.changeset(%Notification{}, attrs)
+
+    case Repo.insert(changeset) do
+      {:ok, notification} ->
+        {:ok, notification}
+
+      {:error, changeset} ->
+        IO.inspect(changeset.errors, label: "Changeset Errors")
+        {:error, changeset}
+    end
   end
 
   @doc """

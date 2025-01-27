@@ -1,18 +1,25 @@
 defmodule KejaDigital.NotificationsTest do
   use KejaDigital.DataCase
   alias KejaDigital.Notifications
+  import KejaDigital.NotificationsFixtures
 
   describe "notifications" do
     alias KejaDigital.Notifications.Notification
-    import KejaDigital.NotificationsFixtures
 
     @invalid_attrs %{title: nil, content: nil, is_read: nil}
     @valid_attrs %{title: "some title", content: "some content", is_read: true}
     @update_attrs %{title: "some updated title", content: "some updated content", is_read: false}
 
-    test "list_notifications/0 returns all notifications" do
-      notification = notification_fixture()
-      assert Notifications.list_notifications() == [notification]
+    # Setup block to create an admin for testing
+    setup do
+      # Replace with actual admin creation if needed
+      admin = %{id: 1}  # Assuming admin has id 1
+      {:ok, admin: admin}
+    end
+
+    test "list_notifications/1 returns all notifications", %{admin: admin} do
+      notification = notification_fixture(admin_id: admin.id)
+      assert Notifications.list_notifications(admin.id) == [notification]
     end
 
     test "get_notification!/1 returns the notification with given id" do

@@ -37,9 +37,9 @@ defmodule KejaDigital.Notifications do
       [%Notification{}, ...]
 
   """
-  def list_notifications(user_id) do
+  def list_notifications(admin_id) do
     Notification
-    |> where([n], n.user_id == ^user_id)
+    |> where([n], n.admin_id == ^admin_id)
     |> Repo.all()
   end
 

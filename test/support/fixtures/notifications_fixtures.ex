@@ -5,17 +5,19 @@ defmodule KejaDigital.NotificationsFixtures do
   """
 
   @doc """
-  Generate a notification.
+  Generate a notification with a given admin_id.
   """
   def notification_fixture(attrs \\ %{}) do
-    {:ok, notification} =
-      attrs
-      |> Enum.into(%{
+    attrs =
+      Enum.into(attrs, %{
         content: "some content",
         is_read: true,
-        title: "some title"
+        title: "some title",
+        admin_id: 1
       })
-      |> KejaDigital.Notifications.create_notification()
+
+    {:ok, notification} =
+      KejaDigital.Notifications.create_notification(attrs)
 
     notification
   end

@@ -3,27 +3,30 @@ defmodule KejaDigitalWeb.SupportBookingLive do
 
   alias KejaDigital.Support
   alias KejaDigital.Support.Booking
+  alias Phoenix.PubSub
 
   @impl true
   def mount(_params, _session, socket) do
     changeset = Support.change_booking(%Booking{})
 
-    socket = socket
-    |> assign(
-      changeset: changeset,
-      booking_types: booking_types(),
-      submit_status: nil,
-      error_message: nil
-    )
+    socket =
+      socket
+      |> assign(
+        changeset: changeset,
+        booking_types: booking_types(),
+        submit_status: nil,
+        error_message: nil
+      )
 
     {:ok, socket, temporary_assigns: [changeset: nil]}
   end
 
   @impl true
   def handle_event("validate", %{"booking" => params}, socket) do
-    changeset = %Booking{}
-    |> Support.change_booking(params)
-    |> Map.put(:action, :validate)
+    changeset =
+      %Booking{}
+      |> Support.change_booking(params)
+      |> Map.put(:action, :validate)
 
     {:noreply, assign(socket, changeset: changeset)}
   end
@@ -32,18 +35,21 @@ defmodule KejaDigitalWeb.SupportBookingLive do
   def handle_event("save", %{"booking" => params}, socket) do
     case Support.create_booking(params) do
       {:ok, booking} ->
-        socket = socket
-        |> put_flash(:success, "Support booking created successfully. Reference: #{booking.id}")
-        |> push_navigate(to: ~p"/support/booking")
+        # Broadcast the booking event to the admin notifications topic
+        PubSub.broadcast(KejaDigital.PubSub, "admin_notifications", {:new_booking, booking})
+
+        socket =
+          socket
+          |> put_flash(:success, "Support booking created successfully. Reference: #{booking.id}")
+          |> push_navigate(to: ~p"/support/booking")
 
         {:noreply, socket}
 
       {:error, changeset} ->
         {:noreply,
-          socket
-          |> assign(changeset: changeset)
-          |> put_flash(:error, "Unable to submit booking. Please check the form.")
-        }
+         socket
+         |> assign(changeset: changeset)
+         |> put_flash(:error, "Unable to submit booking. Please check the form.")}
     end
   end
 

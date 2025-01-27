@@ -1,14 +1,14 @@
 defmodule KejaDigital.NotificationsTest do
   use KejaDigital.DataCase
-
   alias KejaDigital.Notifications
 
   describe "notifications" do
     alias KejaDigital.Notifications.Notification
-
     import KejaDigital.NotificationsFixtures
 
     @invalid_attrs %{title: nil, content: nil, is_read: nil}
+    @valid_attrs %{title: "some title", content: "some content", is_read: true}
+    @update_attrs %{title: "some updated title", content: "some updated content", is_read: false}
 
     test "list_notifications/0 returns all notifications" do
       notification = notification_fixture()
@@ -21,9 +21,7 @@ defmodule KejaDigital.NotificationsTest do
     end
 
     test "create_notification/1 with valid data creates a notification" do
-      valid_attrs = %{title: "some title", content: "some content", is_read: true}
-
-      assert {:ok, %Notification{} = notification} = Notifications.create_notification(valid_attrs)
+      assert {:ok, %Notification{} = notification} = Notifications.create_notification(@valid_attrs)
       assert notification.title == "some title"
       assert notification.content == "some content"
       assert notification.is_read == true
@@ -35,9 +33,7 @@ defmodule KejaDigital.NotificationsTest do
 
     test "update_notification/2 with valid data updates the notification" do
       notification = notification_fixture()
-      update_attrs = %{title: "some updated title", content: "some updated content", is_read: false}
-
-      assert {:ok, %Notification{} = notification} = Notifications.update_notification(notification, update_attrs)
+      assert {:ok, %Notification{} = notification} = Notifications.update_notification(notification, @update_attrs)
       assert notification.title == "some updated title"
       assert notification.content == "some updated content"
       assert notification.is_read == false

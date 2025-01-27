@@ -97,7 +97,7 @@ defp broadcast_agreement_update(result), do: result
 
   """
 def create_tenant_agreement_live(attrs) do
-  tenant_name = attrs["tenant_name"]
+  tenant_name = Map.get(attrs, "tenant_name", "default_tenant") # Provide a default value if tenant_name is nil
 
   # Check if an existing submitted agreement exists for the same tenant
   case Repo.get_by(TenantAgreementLive, tenant_name: tenant_name, submitted: true) do
@@ -139,6 +139,7 @@ def create_tenant_agreement_live(attrs) do
       {:error, :already_submitted}
   end
 end
+
 
 def get_tenant_agreement_by_name(tenant_name) do
   Repo.one(

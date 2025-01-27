@@ -139,28 +139,39 @@ defmodule KejaDigital.Store do
   """
 def register_user(attrs) do
   Repo.transaction(fn ->
-    # Check if the door number is available
-    case Repo.get_by(DoorNumber, number: attrs["door_number"], occupied: false) do
-      nil ->
-        # If door number is not available, rollback and raise an error
-        Repo.rollback(:door_number_taken)
+    # First check if door_number is present in attrs
+    door_number = attrs["door_number"] || attrs[:door_number]
 
-      door_number ->
-        # Proceed with user registration
-        changeset = User.registration_changeset(%User{}, attrs)
+    if is_nil(door_number) do
+      Repo.rollback(:door_number_required)
+    else
+      # Check if the door number is available
+      case Repo.get_by(DoorNumber, number: door_number, occupied: false) do
+        nil ->
+          # If door number is not available, rollback and raise an error
+          Repo.rollback(:door_number_taken)
 
-        case Repo.insert(changeset) do
-          {:ok, user} ->
-            # After successful user registration, mark the door number as occupied
-            Repo.update!(Ecto.Changeset.change(door_number, occupied: true))
+        door_number_record ->
+          # Proceed with user registration
+          changeset = User.registration_changeset(%User{}, attrs)
 
-            # Return the user directly to match the expected format
-            user
+          case Repo.insert(changeset) do
+            {:ok, user} ->
+              # After successful user registration, mark the door number as occupied
+              # and associate it with the user
+              Repo.update!(Ecto.Changeset.change(door_number_record, %{
+                occupied: true,
+                user_id: user.id
+              }))
 
-          {:error, changeset} ->
-            # If user registration fails, rollback and raise the error
-            Repo.rollback(changeset)
-        end
+              # Return the user directly to match the expected format
+              user
+
+            {:error, changeset} ->
+              # If user registration fails, rollback and raise the error
+              Repo.rollback(changeset)
+          end
+      end
     end
   end)
 end

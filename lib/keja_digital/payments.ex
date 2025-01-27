@@ -107,7 +107,10 @@ end
       ** (Ecto.NoResultsError)
 
   """
-  def get_mpesa_payment!(id), do: Repo.get!(MpesaPayment, id)
+
+  def get_mpesa_payment!(id) do
+    Repo.get!(MpesaPayment, id)
+  end
 
   @doc """
   Creates a mpesa_payment.

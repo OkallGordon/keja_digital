@@ -10,6 +10,8 @@ defmodule KejaDigital.Support do
   alias KejaDigital.Repo
   alias KejaDigital.Support.Booking
 
+  alias KejaDigital.Notifications
+
   @doc """
   Creates a new support booking.
 
@@ -22,8 +24,32 @@ defmodule KejaDigital.Support do
   """
   def create_booking(attrs) do
     %Booking{}
-    |> Booking.changeset(attrs)
+    |> change_booking(attrs)
     |> Repo.insert()
+    |> case do
+      {:ok, booking} ->
+        # Prepare the notification details
+        notification_attrs = %{
+          title: "New Support Booking: #{booking.booking_type}",
+          content: "A new booking has been made with the following details: #{booking.description} (#{booking.first_name} #{booking.last_name}).",
+          admin_id: 1 # Assuming you're targeting admin with ID 1
+        }
+
+        # Insert the notification and broadcast the event
+        case Notifications.create_notification(notification_attrs) do
+          {:ok, _notification} ->
+            Phoenix.PubSub.broadcast(KejaDigital.PubSub, "admin_notifications", {:new_booking, booking})
+            {:ok, booking}
+
+          {:error, changeset} ->
+            # Handle failure if the notification creation fails
+            IO.inspect(changeset, label: "Failed to create notification")
+            {:ok, booking}  # Proceed with booking creation, but log the failure
+        end
+
+      error ->
+        error
+    end
   end
 
   @doc """

@@ -149,33 +149,37 @@ defmodule KejaDigitalWeb.NotificationsLive do
   def handle_event("mark_read", %{"id" => id}, socket) do
     notification = Enum.find(socket.assigns.notifications, &(&1.id == id))
 
-    case Notifications.mark_as_read(notification) do
-      {:ok, _updated} ->
-        notifications = Notifications.list_notifications(socket.assigns.current_admin.id)
-        {:noreply, assign(socket, :notifications, notifications)}
+    if notification do
+      case Notifications.mark_as_read(notification) do
+        {:ok, _updated} ->
+          notifications = Notifications.list_notifications(socket.assigns.current_admin.id)
+          {:noreply, assign(socket, :notifications, notifications)}
 
-      {:error, _changeset} ->
-        {:noreply, put_flash(socket, :error, "Could not mark notification as read")}
+        {:error, _changeset} ->
+          {:noreply, put_flash(socket, :error, "Could not mark notification as read")}
+      end
+    else
+      {:noreply, put_flash(socket, :error, "Notification not found")}
     end
   end
 
   def handle_event("mark_all_read", %{"value" => ""}, socket) do
     case Notifications.mark_all_as_read(socket.assigns.current_admin.id) do
-      {0, nil} ->
-        {:noreply, socket}  # Handle case where no notifications were updated
-      {count, _} when is_integer(count) ->
+      {0, _} ->
+        {:noreply, socket}
+      {count, _} when is_integer(count) and count > 0 ->
         {:noreply, assign(socket, :notifications, [])}
       _ ->
-        {:noreply, socket}
+        {:noreply, put_flash(socket, :error, "Could not mark notifications as read")}
     end
   end
-
 
   def handle_info({:new_notification, notification}, socket) do
     notifications = [notification | socket.assigns.notifications]
     {:noreply, assign(socket, :notifications, notifications)}
   end
 
+  defp format_timestamp(nil), do: "N/A"
   defp format_timestamp(datetime) do
     Calendar.strftime(datetime, "%B %d, %Y at %I:%M %p")
   end

@@ -54,7 +54,7 @@ defmodule KejaDigital.Mpesa.Auth do
 
   defp should_refresh?(nil), do: true
   defp should_refresh?(expires_at) do
-    DateTime.diff(expires_at, DateTime.utc_now()) < 300  # Refresh if less than 5 minutes remaining
+    DateTime.diff(expires_at, DateTime.utc_now()) < 300  # Refresh if less than 5 minutes left
   end
 
   defp fetch_new_token do

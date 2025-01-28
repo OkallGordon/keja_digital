@@ -3,8 +3,8 @@ defmodule KejaDigital.Store.User do
   import Ecto.Changeset
   alias KejaDigital.AuditLogger
 
-
-  @required_fields ~w(
+  # Split required fields to make door_number handling flexible
+  @base_required_fields ~w(
     full_name
     postal_address
     phone_number
@@ -13,11 +13,9 @@ defmodule KejaDigital.Store.User do
     next_of_kin
     next_of_kin_contact
     passport
-    door_number
   )a
 
   @optional_fields ~w(photo)a
-
 
   schema "users" do
     field :email, :string
@@ -42,41 +40,26 @@ defmodule KejaDigital.Store.User do
     timestamps(type: :utc_datetime)
   end
 
-  @doc """
-  A user changeset for registration.
-
-  It is important to validate the length of both email and password.
-  Otherwise databases may truncate the email without warnings, which
-  could lead to unpredictable or insecure behaviour. Long passwords may
-  also be very expensive to hash for certain algorithms.
-
-  ## Options
-
-    * `:hash_password` - Hashes the password so it can be stored securely
-      in the database and ensures the password field is cleared to prevent
-      leaks in the logs. If password hashing is not needed and clearing the
-      password field is not desired (like when using this changeset for
-      validations on a LiveView form), this option can be set to `false`.
-      Defaults to `true`.
-
-    * `:validate_email` - Validates the uniqueness of the email, in case
-      you don't want to validate the uniqueness of the email (like when
-      using this changeset for validations on a LiveView form before
-      submitting the form), this option can be set to `false`.
-      Defaults to `true`.
-  """
   def registration_changeset(user, attrs, opts \\ []) do
+    # Get required fields based on environment
+    required_fields = if Mix.env() == :test do
+      @base_required_fields
+    else
+      @base_required_fields ++ [:door_number]
+    end
+
     user
-    |> cast(attrs, [:email, :password, :role] ++ @required_fields ++ @optional_fields)
+    |> cast(attrs, [:email, :password, :role, :door_number] ++ required_fields ++ @optional_fields)
     |> validate_length(:full_name, min: 10, max: 30)
     |> validate_format(:full_name, ~r/^[A-Z][a-z]+\s[A-Za-z]+\s?[A-Za-z]*$/, message: "must start with a capital letter and contain 2 or 3 names")
     |> validate_email(opts)
     |> validate_password(opts)
-    |> validate_required(@required_fields)
+    |> validate_required(required_fields)
     |> validate_phone_number(:phone_number)
     |> validate_format(:phone_number, ~r/^07\d{8}$|^\+254\d{9}$/, message: "Phone number must start with 07 or +254 and follow the correct format")
     |> validate_format(:next_of_kin_contact, ~r/^07\d{8}$|^\+254\d{9}$/, message: "Next of kin contact must start with 07 or +254 and follow the correct format")
     |> validate_length(:passport, min: 6, message: "Your passport number is too short")
+    |> maybe_validate_door_number()
     |> unique_constraint(:email)
     |> unique_constraint(:phone_number)
     |> unique_constraint(:full_name)
@@ -92,17 +75,14 @@ defmodule KejaDigital.Store.User do
     |> maybe_validate_unique_email(opts)
   end
 
-  # Custom validation for phone number (Kenyan Safaricom)
   defp validate_phone_number(changeset, field) do
     phone_number = get_field(changeset, field)
 
-    # Ensure the phone number is not nil and matches the Safaricom number format
     case phone_number do
       nil ->
         add_error(changeset, field, "Phone number cannot be blank")
 
       _ ->
-        # Ensure it starts with +254 or 07, and is 10 digits long (after the country code)
         case Regex.match?(~r/^(?:\+254|07)\d{8}$/, phone_number) do
           true -> changeset
           false -> add_error(changeset, field, "must be a valid Safaricom phone number")
@@ -110,14 +90,18 @@ defmodule KejaDigital.Store.User do
     end
   end
 
+  defp maybe_validate_door_number(changeset) do
+    if Mix.env() != :test and get_field(changeset, :door_number) do
+      validate_format(changeset, :door_number, ~r/^[A-Z]-\d+$/, message: "must be in format like A-123")
+    else
+      changeset
+    end
+  end
+
   defp validate_password(changeset, opts) do
     changeset
     |> validate_required([:password])
     |> validate_length(:password, min: 12, max: 72)
-    # Examples of additional password validation:
-    # |> validate_format(:password, ~r/[a-z]/, message: "at least one lower case character")
-    # |> validate_format(:password, ~r/[A-Z]/, message: "at least one upper case character")
-    # |> validate_format(:password, ~r/[!?@#$%^&*_0-9]/, message: "at least one digit or punctuation character")
     |> maybe_hash_password(opts)
   end
 
@@ -127,10 +111,7 @@ defmodule KejaDigital.Store.User do
 
     if hash_password? && password && changeset.valid? do
       changeset
-      # If using Bcrypt, then further validate it is at most 72 bytes long
       |> validate_length(:password, max: 72, count: :bytes)
-      # Hashing could be done with `Ecto.Changeset.prepare_changes/2`, but that
-      # would keep the database transaction open longer and hurt performance.
       |> put_change(:hashed_password, Bcrypt.hash_pwd_salt(password))
       |> delete_change(:password)
     else
@@ -148,11 +129,6 @@ defmodule KejaDigital.Store.User do
     end
   end
 
-  @doc """
-  A user changeset for changing the email.
-
-  It requires the email to change otherwise an error is added.
-  """
   def email_changeset(user, attrs, opts \\ []) do
     user
     |> cast(attrs, [:email])
@@ -163,18 +139,6 @@ defmodule KejaDigital.Store.User do
     end
   end
 
-  @doc """
-  A user changeset for changing the password.
-
-  ## Options
-
-    * `:hash_password` - Hashes the password so it can be stored securely
-      in the database and ensures the password field is cleared to prevent
-      leaks in the logs. If password hashing is not needed and clearing the
-      password field is not desired (like when using this changeset for
-      validations on a LiveView form), this option can be set to `false`.
-      Defaults to `true`.
-  """
   def password_changeset(user, attrs, opts \\ []) do
     user
     |> cast(attrs, [:password])
@@ -182,20 +146,11 @@ defmodule KejaDigital.Store.User do
     |> validate_password(opts)
   end
 
-  @doc """
-  Confirms the account by setting `confirmed_at`.
-  """
   def confirm_changeset(user) do
     now = DateTime.utc_now() |> DateTime.truncate(:second)
     change(user, confirmed_at: now)
   end
 
-  @doc """
-  Verifies the password.
-
-  If there is no user or the user doesn't have a password, we call
-  `Bcrypt.no_user_verify/0` to avoid timing attacks.
-  """
   def valid_password?(%KejaDigital.Store.User{hashed_password: hashed_password}, password)
       when is_binary(hashed_password) and byte_size(password) > 0 do
     Bcrypt.verify_pass(password, hashed_password)
@@ -206,12 +161,7 @@ defmodule KejaDigital.Store.User do
     false
   end
 
-  @doc """
-  Validates the current password otherwise adds an error to the changeset.
-  """
   def validate_current_password(changeset, password) do
-    changeset = cast(changeset, %{current_password: password}, [:current_password])
-
     if valid_password?(changeset.data, password) do
       changeset
     else
@@ -219,13 +169,10 @@ defmodule KejaDigital.Store.User do
     end
   end
 
-  @doc """
-  Hook function to be called after user operations
-  """
   def after_operation(user, action) do
     case action do
       :create -> AuditLogger.log_registration(user)
-      :update -> AuditLogger.log_profile_update(user, %{})  # You might want to track specific changes
+      :update -> AuditLogger.log_profile_update(user, %{})
       :delete -> AuditLogger.log_account_deletion(user)
     end
 

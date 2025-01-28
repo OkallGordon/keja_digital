@@ -11,6 +11,7 @@ defmodule KejaDigital.Store do
 
   alias KejaDigital.Properties.Property
 
+
   def count_active_listings do
     Property
     |> where([p], p.status == "active")

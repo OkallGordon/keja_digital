@@ -12,7 +12,11 @@ defmodule KejaDigital.PaymentsTest do
 
     test "list_mpesa_payments/0 returns all mpesa_payments" do
       mpesa_payment = mpesa_payment_fixture()
-      assert Payments.list_mpesa_payments() == [mpesa_payment]
+      [retrieved_payment] = Payments.list_mpesa_payments()
+
+      assert Enum.all?(Map.keys(mpesa_payment), fn key ->
+        Map.get(mpesa_payment, key) == Map.get(retrieved_payment, key)
+      end)
     end
 
     test "get_mpesa_payment!/1 returns the mpesa_payment with given id" do
@@ -21,16 +25,26 @@ defmodule KejaDigital.PaymentsTest do
     end
 
     test "create_mpesa_payment/1 with valid data creates a mpesa_payment" do
-      valid_attrs = %{status: "some status", transaction_id: "some transaction_id", amount: "120.5", phone_number: "some phone_number", till_number: "some till_number", paid_at: ~U[2024-12-19 14:15:00Z], tenant_id: 42}
+      tenant = KejaDigital.StoreFixtures.user_fixture()
+
+      valid_attrs = %{
+        status: "completed",
+        transaction_id: "TX123",
+        amount: "120.5",
+        phone_number: "0723456789",
+        till_number: "123456",
+        paid_at: ~U[2024-12-19 14:15:00Z],
+        tenant_id: tenant.id
+      }
 
       assert {:ok, %MpesaPayment{} = mpesa_payment} = Payments.create_mpesa_payment(valid_attrs)
-      assert mpesa_payment.status == "some status"
-      assert mpesa_payment.transaction_id == "some transaction_id"
+      assert mpesa_payment.status == "completed"
+      assert mpesa_payment.transaction_id == "TX123"
       assert mpesa_payment.amount == Decimal.new("120.5")
-      assert mpesa_payment.phone_number == "some phone_number"
-      assert mpesa_payment.till_number == "some till_number"
+      assert mpesa_payment.phone_number == "0723456789"
+      assert mpesa_payment.till_number == "123456"
       assert mpesa_payment.paid_at == ~U[2024-12-19 14:15:00Z]
-      assert mpesa_payment.tenant_id == 42
+      assert mpesa_payment.tenant_id == tenant.id
     end
 
     test "create_mpesa_payment/1 with invalid data returns error changeset" do

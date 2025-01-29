@@ -4,21 +4,27 @@ defmodule KejaDigital.StoreFixtures do
   entities via the `KejaDigital.Store` context.
   """
 
+  alias KejaDigital.Repo
+  alias KejaDigital.Store.DoorNumber
+
   def unique_user_email, do: "user#{System.unique_integer([:positive])}@example.com"
   def valid_user_password, do: "hello world!"
 
-  def generate_unique_door_number do
-    # Using a format like "A-123" for door numbers
-    prefix = Enum.random(["A", "B", "C", "D"])
-    number = System.unique_integer([:positive])
-    "#{prefix}-#{number}"
+  def create_door_number(number) do
+    %DoorNumber{}
+    |> DoorNumber.changeset(%{number: "Door #{number}", occupied: false})
+    |> Repo.insert!()
   end
 
   def valid_user_attributes(attrs \\ %{}) do
+    # Create a new unoccupied door number for this test
+    unique_number = System.unique_integer([:positive])
+    door_number = create_door_number(unique_number)
+
     base_attrs = %{
       email: unique_user_email(),
       password: valid_user_password(),
-      door_number: generate_unique_door_number(),
+      door_number: door_number.number,
       confirmed_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
     }
 
@@ -26,22 +32,12 @@ defmodule KejaDigital.StoreFixtures do
   end
 
   def user_fixture(attrs \\ %{}) do
-    try_create_user(attrs, 3)
-  end
+    {:ok, user} =
+      attrs
+      |> valid_user_attributes()
+      |> KejaDigital.Store.register_user()
 
-  defp try_create_user(_attrs, 0) do
-    raise "Failed to create user after multiple attempts - door numbers already taken"
-  end
-
-  defp try_create_user(attrs, attempts) do
-    case attrs
-         |> valid_user_attributes()
-         |> KejaDigital.Store.register_user() do
-      {:ok, user} -> user
-      {:error, :door_number_taken} -> try_create_user(attrs, attempts - 1)
-      {:error, other_reason} = error ->
-        raise "Failed to create user: #{inspect(error)}, reason: #{inspect(other_reason)}"
-    end
+    user
   end
 
   def extract_user_token(fun) do

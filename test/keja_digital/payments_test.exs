@@ -1,85 +1,105 @@
-defmodule KejaDigital.PaymentsTest do
+defmodule KejaDigital.Payments.MpesaPaymentTest do
   use KejaDigital.DataCase
 
-  alias KejaDigital.Payments
+  alias KejaDigital.Payments.MpesaPayment
+  #alias KejaDigital.Store
+  alias KejaDigital.Store.User
 
-  describe "mpesa_payments" do
-    alias KejaDigital.Payments.MpesaPayment
+  describe "changeset/2" do
+    @valid_attrs %{
+      transaction_id: "MPESA123456",
+      amount: Decimal.new("1000.00"),
+      phone_number: "0712345678",
+      till_number: "4154742",
+      status: "completed",
+      paid_at: DateTime.utc_now()
+    }
 
-    import KejaDigital.PaymentsFixtures
+    setup do
+      # Create a test user with all required fields and full_name at least 10 characters
+      {:ok, user} =
+        %User{}
+        |> User.registration_changeset(%{
+          email: "test@gmail.com",
+          phone_number: "0712345678",
+          password: "somepassword123",
+          role: "tenant",
+          full_name: "John Doe Smith",
+          postal_address: "P.O. Box 123",
+          nationality: "Kenyan",
+          organization: "Test Corp",
+          next_of_kin: "Jane Doe",
+          next_of_kin_contact: "0722345678",
+          passport: "ABC123456"
+        })
+        |> Repo.insert()
 
-    @invalid_attrs %{status: nil, transaction_id: nil, amount: nil, phone_number: nil, till_number: nil, paid_at: nil, tenant_id: nil}
-
-    test "list_mpesa_payments/0 returns all mpesa_payments" do
-      mpesa_payment = mpesa_payment_fixture()
-      [retrieved_payment] = Payments.list_mpesa_payments()
-
-      assert Enum.all?(Map.keys(mpesa_payment), fn key ->
-        Map.get(mpesa_payment, key) == Map.get(retrieved_payment, key)
-      end)
+      %{user: user}
     end
 
-    test "get_mpesa_payment!/1 returns the mpesa_payment with given id" do
-      mpesa_payment = mpesa_payment_fixture()
-      assert Payments.get_mpesa_payment!(mpesa_payment.id) == mpesa_payment
+    test "creates valid changeset with all attributes", %{user: user} do
+      changeset = MpesaPayment.changeset(%MpesaPayment{}, @valid_attrs)
+      assert changeset.valid?
+      assert get_change(changeset, :user_id) == user.id
     end
 
-    test "create_mpesa_payment/1 with valid data creates a mpesa_payment" do
-      tenant = KejaDigital.StoreFixtures.user_fixture()
+    test "returns error changeset with missing required fields" do
+      changeset = MpesaPayment.changeset(%MpesaPayment{}, %{})
+      refute changeset.valid?
 
-      valid_attrs = %{
-        status: "completed",
-        transaction_id: "TX123",
-        amount: "120.5",
-        phone_number: "0723456789",
-        till_number: "123456",
-        paid_at: ~U[2024-12-19 14:15:00Z],
-        tenant_id: tenant.id
+      assert errors_on(changeset) == %{
+        transaction_id: ["can't be blank"],
+        amount: ["can't be blank"],
+        phone_number: ["Phone number is missing", "can't be blank"],
+        till_number: ["Invalid till number", "can't be blank"],
+        status: ["can't be blank"],
+        paid_at: ["can't be blank"]
       }
-
-      assert {:ok, %MpesaPayment{} = mpesa_payment} = Payments.create_mpesa_payment(valid_attrs)
-      assert mpesa_payment.status == "completed"
-      assert mpesa_payment.transaction_id == "TX123"
-      assert mpesa_payment.amount == Decimal.new("120.5")
-      assert mpesa_payment.phone_number == "0723456789"
-      assert mpesa_payment.till_number == "123456"
-      assert mpesa_payment.paid_at == ~U[2024-12-19 14:15:00Z]
-      assert mpesa_payment.tenant_id == tenant.id
     end
 
-    test "create_mpesa_payment/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Payments.create_mpesa_payment(@invalid_attrs)
+    test "validates till number must be 4154742" do
+      attrs = Map.put(@valid_attrs, :till_number, "1234567")
+      changeset = MpesaPayment.changeset(%MpesaPayment{}, attrs)
+      assert %{till_number: ["Invalid till number"]} = errors_on(changeset)
     end
 
-    test "update_mpesa_payment/2 with valid data updates the mpesa_payment" do
-      mpesa_payment = mpesa_payment_fixture()
-      update_attrs = %{status: "some updated status", transaction_id: "some updated transaction_id", amount: "456.7", phone_number: "some updated phone_number", till_number: "some updated till_number", paid_at: ~U[2024-12-20 14:15:00Z], tenant_id: 43}
+    test "validates unique transaction_id constraint", %{user: _user} do
+      # First, insert a payment
+      {:ok, _payment} = %MpesaPayment{}
+        |> MpesaPayment.changeset(@valid_attrs)
+        |> Repo.insert()
 
-      assert {:ok, %MpesaPayment{} = mpesa_payment} = Payments.update_mpesa_payment(mpesa_payment, update_attrs)
-      assert mpesa_payment.status == "some updated status"
-      assert mpesa_payment.transaction_id == "some updated transaction_id"
-      assert mpesa_payment.amount == Decimal.new("456.7")
-      assert mpesa_payment.phone_number == "some updated phone_number"
-      assert mpesa_payment.till_number == "some updated till_number"
-      assert mpesa_payment.paid_at == ~U[2024-12-20 14:15:00Z]
-      assert mpesa_payment.tenant_id == 43
+      # Try to insert another payment with the same transaction_id
+      {:error, changeset} = %MpesaPayment{}
+        |> MpesaPayment.changeset(@valid_attrs)
+        |> Repo.insert()
+
+      assert %{transaction_id: ["has already been taken"]} = errors_on(changeset)
     end
 
-    test "update_mpesa_payment/2 with invalid data returns error changeset" do
-      mpesa_payment = mpesa_payment_fixture()
-      assert {:error, %Ecto.Changeset{}} = Payments.update_mpesa_payment(mpesa_payment, @invalid_attrs)
-      assert mpesa_payment == Payments.get_mpesa_payment!(mpesa_payment.id)
+    test "returns error when user is not found for phone number" do
+      attrs = Map.put(@valid_attrs, :phone_number, "0799999999")
+      changeset = MpesaPayment.changeset(%MpesaPayment{}, attrs)
+      assert %{phone_number: ["No user found with this phone number"]} = errors_on(changeset)
     end
 
-    test "delete_mpesa_payment/1 deletes the mpesa_payment" do
-      mpesa_payment = mpesa_payment_fixture()
-      assert {:ok, %MpesaPayment{}} = Payments.delete_mpesa_payment(mpesa_payment)
-      assert_raise Ecto.NoResultsError, fn -> Payments.get_mpesa_payment!(mpesa_payment.id) end
+    test "assigns correct user_id based on phone number", %{user: user} do
+      changeset = MpesaPayment.changeset(%MpesaPayment{}, @valid_attrs)
+      assert changeset.valid?
+      assert get_change(changeset, :user_id) == user.id
     end
 
-    test "change_mpesa_payment/1 returns a mpesa_payment changeset" do
-      mpesa_payment = mpesa_payment_fixture()
-      assert %Ecto.Changeset{} = Payments.change_mpesa_payment(mpesa_payment)
+    test "handles different phone number formats", %{user: user} do
+      # Update user's phone number to include country code
+      {:ok, user} =
+        user
+        |> Ecto.Changeset.change(%{phone_number: "+254712345678"})
+        |> Repo.update()
+
+      attrs = Map.put(@valid_attrs, :phone_number, "+254712345678")
+      changeset = MpesaPayment.changeset(%MpesaPayment{}, attrs)
+      assert changeset.valid?
+      assert get_change(changeset, :user_id) == user.id
     end
   end
 end

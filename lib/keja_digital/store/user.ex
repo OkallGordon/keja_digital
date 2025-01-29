@@ -90,13 +90,13 @@ defmodule KejaDigital.Store.User do
     end
   end
 
-  defp maybe_validate_door_number(changeset) do
-    if Mix.env() != :test and get_field(changeset, :door_number) do
-      validate_format(changeset, :door_number, ~r/^[A-Z]-\d+$/, message: "must be in format like A-123")
-    else
-      changeset
+    defp maybe_validate_door_number(changeset) do
+      if get_field(changeset, :door_number) do
+        validate_format(changeset, :door_number, ~r/^[A-Z]-\d+$/, message: "must be in format like A-123")
+      else
+        changeset
+      end
     end
-  end
 
   defp validate_password(changeset, opts) do
     changeset

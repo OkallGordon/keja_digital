@@ -22,5 +22,15 @@ defmodule KejaDigital.Stats.Stat do
     |> validate_number(:active_users, greater_than_or_equal_to: 0)
     |> validate_number(:total_properties, greater_than_or_equal_to: 0)
     |> validate_number(:occupied_properties, greater_than_or_equal_to: 0)
+    |> validate_properties_count()
+  end
+
+  defp validate_properties_count(changeset) do
+    case {get_field(changeset, :total_properties), get_field(changeset, :occupied_properties)} do
+      {total, occupied} when not is_nil(total) and not is_nil(occupied) and occupied > total ->
+        add_error(changeset, :occupied_properties, "cannot exceed total properties")
+      _ ->
+        changeset
+    end
   end
 end

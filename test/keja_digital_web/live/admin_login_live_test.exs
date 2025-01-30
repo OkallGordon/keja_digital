@@ -1,15 +1,13 @@
 defmodule KejaDigitalWeb.AdminLoginLiveTest do
   use KejaDigitalWeb.ConnCase, async: true
-
   import Phoenix.LiveViewTest
   import KejaDigital.BackofficeFixtures
 
   describe "Log in page" do
     test "renders log in page", %{conn: conn} do
       {:ok, _lv, html} = live(conn, ~p"/admins/log_in")
-
-      assert html =~ "Log in"
-      assert html =~ "Register"
+      assert html =~ "Sign in"
+      assert html =~ "Sign up"
       assert html =~ "Forgot your password?"
     end
 
@@ -28,12 +26,9 @@ defmodule KejaDigitalWeb.AdminLoginLiveTest do
     test "redirects if admin login with valid credentials", %{conn: conn} do
       password = "123456789abcd"
       admin = admin_fixture(%{password: password})
-
       {:ok, lv, _html} = live(conn, ~p"/admins/log_in")
 
-      form =
-        form(lv, "#login_form", admin: %{email: admin.email, password: password, remember_me: true})
-
+      form = form(lv, "#login_form", admin: %{email: admin.email, password: password, remember_me: true})
       conn = submit_form(form, conn)
 
       assert redirected_to(conn) == ~p"/"
@@ -45,14 +40,11 @@ defmodule KejaDigitalWeb.AdminLoginLiveTest do
       {:ok, lv, _html} = live(conn, ~p"/admins/log_in")
 
       form =
-        form(lv, "#login_form",
-          admin: %{email: "test@email.com", password: "123456", remember_me: true}
-        )
+        form(lv, "#login_form", admin: %{email: "test@email.com", password: "123456", remember_me: true})
 
       conn = submit_form(form, conn)
 
       assert Phoenix.Flash.get(conn.assigns.flash, :error) == "Invalid email or password"
-
       assert redirected_to(conn) == "/admins/log_in"
     end
   end

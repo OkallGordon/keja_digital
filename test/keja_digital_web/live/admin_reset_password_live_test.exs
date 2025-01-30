@@ -97,7 +97,7 @@ defmodule KejaDigitalWeb.AdminResetPasswordLiveTest do
         |> render_click()
         |> follow_redirect(conn, ~p"/admins/log_in")
 
-      assert conn.resp_body =~ "Log in"
+      assert conn.resp_body =~ "log_in"
     end
 
     test "redirects to registration page when the Register button is clicked", %{

@@ -6,6 +6,8 @@ defmodule KejaDigital.Store.DoorNumber do
     field :number, :string
     field :occupied, :boolean, default: false
 
+    belongs_to :user, KejaDigital.Store.User
+
     timestamps()
   end
 

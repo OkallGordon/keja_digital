@@ -14,7 +14,7 @@ defmodule KejaDigitalWeb.AdminConfirmationInstructionsLiveTest do
   describe "Resend confirmation" do
     test "renders the resend confirmation page", %{conn: conn} do
       {:ok, _lv, html} = live(conn, ~p"/admins/confirm")
-      assert html =~ "Resend confirmation instructions"
+      assert html =~ "Resend Confirmation Instructions"
     end
 
     test "sends a new confirmation token", %{conn: conn, admin: admin} do

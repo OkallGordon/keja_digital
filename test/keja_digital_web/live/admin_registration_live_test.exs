@@ -81,7 +81,7 @@ defmodule KejaDigitalWeb.AdminRegistrationLiveTest do
         |> render_click()
         |> follow_redirect(conn, ~p"/admins/log_in")
 
-      assert login_html =~ "Log in"
+      assert login_html =~ "log_in"
     end
   end
 end

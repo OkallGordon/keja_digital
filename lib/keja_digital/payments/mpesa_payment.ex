@@ -10,6 +10,7 @@ defmodule KejaDigital.Payments.MpesaPayment do
     field :till_number, :string
     field :paid_at, :utc_datetime
     field :user_id, :integer
+    field :tenant_id, :integer
 
     timestamps(type: :utc_datetime)
   end
@@ -17,8 +18,8 @@ defmodule KejaDigital.Payments.MpesaPayment do
   @doc false
   def changeset(mpesa_payment, attrs) do
     mpesa_payment
-    |> cast(attrs, [:transaction_id, :amount, :phone_number, :till_number, :status, :paid_at, :user_id])
-    |> validate_required([:transaction_id, :amount, :phone_number, :till_number, :status, :paid_at])
+    |> cast(attrs, [:transaction_id, :amount, :phone_number, :till_number, :status, :paid_at, :user_id, :tenant_id])
+    |> validate_required([:transaction_id, :amount, :phone_number, :till_number, :status, :paid_at, :tenant_id])
     |> unique_constraint(:transaction_id)
     |> validate_till_number()
     |> assign_user()

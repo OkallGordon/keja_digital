@@ -2,14 +2,12 @@ defmodule KejaDigital.Agreements do
   @moduledoc """
   The Agreements context.
   """
-
   import Ecto.Query, warn: false
   alias KejaDigital.Repo
 
   alias KejaDigital.Agreements.TenantAgreementLive
   alias KejaDigital.Backoffice
   alias KejaDigital.Notifications
-
 
    def get_tenant_agreement_status(tenant_id) do
     case Repo.get_by(Agreement, tenant_id: tenant_id) do
@@ -30,7 +28,6 @@ defmodule KejaDigital.Agreements do
     Repo.all(TenantAgreementLive)
   end
 
-
   def list_tenant_agreements_for_user(id) do
     Repo.all(from t in TenantAgreementLive, where: t.tenant_id == ^id)
   end
@@ -42,7 +39,6 @@ def list_pending_tenant_agreements do
   |> Repo.all()
 end
 
-# In lib/keja_digital/agreements.ex
 def list_tenant_agreements_by_status(statuses) when is_list(statuses) do
   from(t in TenantAgreementLive,
     where: t.status in ^statuses,
@@ -97,20 +93,16 @@ defp broadcast_agreement_update(result), do: result
 
   """
 def create_tenant_agreement_live(attrs) do
-  tenant_name = Map.get(attrs, "tenant_name", "default_tenant") # Provide a default value if tenant_name is nil
+  tenant_name = Map.get(attrs, "tenant_name", "default_tenant")
 
-  # Check if an existing submitted agreement exists for the same tenant
   case Repo.get_by(TenantAgreementLive, tenant_name: tenant_name, submitted: true) do
     nil ->
-      # No duplicate exists; proceed with creating a new tenant agreement
       case %TenantAgreementLive{}
            |> TenantAgreementLive.changeset(attrs)
            |> Repo.insert() do
         {:ok, tenant_agreement} ->
-          # Find all admin users
           admins = Backoffice.list_admin_users()
 
-          # Create notifications for each admin
           Enum.each(admins, fn admin ->
             Notifications.create_notification(%{
               title: "New Tenant Agreement Submitted",
@@ -121,7 +113,6 @@ def create_tenant_agreement_live(attrs) do
             })
           end)
 
-          # Broadcast the new tenant agreement to admin channel
           Phoenix.PubSub.broadcast(
             KejaDigital.PubSub,
             "admin_notifications",
@@ -140,7 +131,6 @@ def create_tenant_agreement_live(attrs) do
   end
 end
 
-
 def get_tenant_agreement_by_name(tenant_name) do
   Repo.one(
     from t in TenantAgreementLive,
@@ -151,7 +141,6 @@ end
 def get_tenant_agreement_by_tenant_id(tenant_id) do
   Repo.get_by(TenantAgreement, tenant_id: tenant_id)
 end
-
 
 def check_tenant_submission_status(tenant_name) do
   case get_tenant_agreement_by_name(tenant_name) do

@@ -32,7 +32,7 @@ defmodule KejaDigital.Agreements do
 
 
   def list_tenant_agreements_for_user(id) do
-    Repo.all(from t in TenantAgreementLive, where: t.id == ^id)
+    Repo.all(from t in TenantAgreementLive, where: t.tenant_id == ^id)
   end
 
 def list_pending_tenant_agreements do

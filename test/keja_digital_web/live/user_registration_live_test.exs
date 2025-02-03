@@ -36,39 +36,77 @@ defmodule KejaDigitalWeb.UserRegistrationLiveTest do
     end
   end
 
-  describe "register user" do
-    test "creates account and logs the user in", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/users/register")
+  test "creates account and logs the user in", %{conn: conn} do
+    # Create door number before loading the LiveView
+    door = create_door_number(123)
 
-      email = unique_user_email()
-      form = form(lv, "#registration_form", user: valid_user_attributes(email: email))
-      render_submit(form)
-      conn = follow_trigger_action(form, conn)
+    {:ok, lv, _html} = live(conn, ~p"/users/register")
 
-      assert redirected_to(conn) == ~p"/"
+    Process.sleep(100)
+    rendered_content = render(lv)
+    assert rendered_content =~ door.number
 
-      # Now do a logged in request and assert on the menu
-      conn = get(conn, "/")
-      response = html_response(conn, 200)
-      assert response =~ email
-      assert response =~ "Settings"
-      assert response =~ "Log out"
-    end
+    # Prepare user attributes
+    email = unique_user_email()
 
-    test "renders errors for duplicated email", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/users/register")
+    attrs = %{
+      email: email,
+      password: valid_user_password(),
+      door_number: door.number,
+      full_name: "John James Smith",
+      postal_address: "123 Test St",
+      phone_number: "0722345678",
+      nationality: "Kenyan",
+      organization: "Test Org",
+      next_of_kin: "Next Kin",
+      next_of_kin_contact: "0722654321",
+      passport: "ABC123456"
+    }
 
-      user = user_fixture(%{email: "test@email.com"})
+    form = form(lv, "#registration_form", user: attrs)
+    render_submit(form)
+    conn = follow_trigger_action(form, conn)
 
-      result =
-        lv
-        |> form("#registration_form",
-          user: %{"email" => user.email, "password" => "valid_password"}
-        )
-        |> render_submit()
+    assert redirected_to(conn) == ~p"/"
 
-      assert result =~ "has already been taken"
-    end
+    conn = get(conn, "/")
+    response = html_response(conn, 200)
+    assert response =~ email
+    assert response =~ "Settings"
+    assert response =~ "Log out"
+  end
+
+  test "renders errors for duplicated email", %{conn: conn} do
+    door = create_door_number(124)
+
+    user = user_fixture(%{email: "test@email.com"})
+
+    {:ok, lv, _html} = live(conn, ~p"/users/register")
+
+    Process.sleep(100)
+    rendered_content = render(lv)
+    assert rendered_content =~ door.number
+
+    result =
+      lv
+      |> form("#registration_form",
+        user: %{
+          "email" => user.email,
+          "password" => "valid_password",
+          "full_name" => "John James Smith",
+          "phone_number" => "0722345678",
+          "nationality" => "Kenyan",
+          "postal_address" => "123 Test St",
+          "organization" => "Test Org",
+          "passport" => "ABC123456",
+          "door_number" => door.number,
+          "next_of_kin" => "Next Kin",
+          "next_of_kin_contact" => "0722654321"
+        }
+      )
+      |> render_submit()
+
+    assert result =~ "has already been taken"
   end
 
   describe "registration navigation" do

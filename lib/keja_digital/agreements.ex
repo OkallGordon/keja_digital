@@ -79,7 +79,6 @@ defp broadcast_agreement_update(result), do: result
 
   """
   def get_tenant_agreement_live!(id), do: Repo.get!(TenantAgreementLive, id)
-
   @doc """
   Creates a tenant_agreement_live.
 

@@ -5,14 +5,11 @@ defmodule KejaDigitalWeb.UserSessionControllerTest do
   alias KejaDigital.Store.{User, DoorNumber}
 
   setup do
-    # Start a clean sandbox transaction
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(KejaDigital.Repo)
 
-    # Clear all existing data to ensure a clean state
     KejaDigital.Repo.delete_all(User)
     KejaDigital.Repo.delete_all(DoorNumber)
 
-    # Create a user with a fresh door number for testing
     %{user: user_fixture()}
   end
 

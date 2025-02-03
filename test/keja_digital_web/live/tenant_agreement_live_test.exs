@@ -1,4 +1,4 @@
-defmodule KejaDigital.AgreementsTest do
+defmodule KejaDigital.AgreementsLiveTest do
   use KejaDigital.DataCase
 
   alias KejaDigital.Agreements

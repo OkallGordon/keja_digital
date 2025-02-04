@@ -10,7 +10,7 @@ defmodule KejaDigital.AgreementsFixtures do
   @doc """
   Generate a tenant_agreement_live.
   """
-  def tenant_agreement_live_fixture(attrs \\ %{}, debug \\ false) do
+  def tenant_agreement_live_fixture(attrs \\ %{}) do
     # Create a user first
     user = user_fixture()
 
@@ -34,20 +34,10 @@ defmodule KejaDigital.AgreementsFixtures do
     # Merge passed attributes with defaults
     attrs = defaults |> Map.merge(attrs)
 
-    # Optional debug
-    if debug, do: IO.inspect(attrs, label: "Fixture Attributes")
-
     # Create tenant agreement
     case KejaDigital.Agreements.create_tenant_agreement_live(attrs) do
-      {:ok, tenant_agreement_live} ->
-        # Optional additional debug
-        IO.puts("Created Tenant Agreement with User ID: #{attrs[:tenant_id]}")
-        tenant_agreement_live
-      {:error, changeset} ->
-        # Detailed error reporting
-        IO.puts("Failed to create tenant agreement")
-        IO.inspect(changeset.errors, label: "Errors")
-        raise "Failed to create tenant agreement: #{inspect(changeset.errors)}"
+      {:ok, tenant_agreement_live} -> tenant_agreement_live
+      {:error, changeset} -> raise "Failed to create tenant agreement: #{inspect(changeset.errors)}"
     end
   end
 end

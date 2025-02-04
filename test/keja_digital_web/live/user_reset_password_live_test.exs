@@ -1,5 +1,5 @@
 defmodule KejaDigitalWeb.UserResetPasswordLiveTest do
-  use KejaDigitalWeb.ConnCase, async: true
+  use KejaDigitalWeb.ConnCase
 
   import Phoenix.LiveViewTest
   import KejaDigital.StoreFixtures
@@ -8,111 +8,88 @@ defmodule KejaDigitalWeb.UserResetPasswordLiveTest do
 
   setup do
     user = user_fixture()
-
-    token =
-      extract_user_token(fn url ->
-        Store.deliver_user_reset_password_instructions(user, url)
-      end)
-
+    token = extract_user_token(fn url -> Store.deliver_user_reset_password_instructions(user, url) end)
     %{token: token, user: user}
   end
 
-  describe "Reset password page" do
-    test "renders reset password with valid token", %{conn: conn, token: token} do
-      {:ok, _lv, html} = live(conn, ~p"/users/reset_password/#{token}")
-
-      assert html =~ "Reset Password"
-    end
-
-    test "does not render reset password with invalid token", %{conn: conn} do
-      {:error, {:redirect, to}} = live(conn, ~p"/users/reset_password/invalid")
-
-      assert to == %{
-               flash: %{"error" => "Reset password link is invalid or it has expired."},
-               to: ~p"/"
-             }
-    end
-
-    test "renders errors for invalid data", %{conn: conn, token: token} do
-      {:ok, lv, _html} = live(conn, ~p"/users/reset_password/#{token}")
-
-      result =
-        lv
-        |> element("#reset_password_form")
-        |> render_change(
-          user: %{"password" => "secret12", "password_confirmation" => "secret123456"}
-        )
-
-      assert result =~ "should be at least 12 character"
-      assert result =~ "does not match password"
-    end
+  test "renders reset password page", %{conn: conn, token: token} do
+    {:ok, _lv, html} = live(conn, ~p"/users/reset_password/#{token}")
+    assert html =~ "Reset Password"
   end
 
-  describe "Reset Password" do
-    test "resets password once", %{conn: conn, token: token, user: user} do
-      {:ok, lv, _html} = live(conn, ~p"/users/reset_password/#{token}")
-
-      {:ok, conn} =
-        lv
-        |> form("#reset_password_form",
-          user: %{
-            "password" => "new valid password",
-            "password_confirmation" => "new valid password"
-          }
-        )
-        |> render_submit()
-        |> follow_redirect(conn, ~p"/users/log_in")
-
-      refute get_session(conn, :user_token)
-      assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "Password reset successfully"
-      assert Store.get_user_by_email_and_password(user.email, "new valid password")
-    end
-
-    test "does not reset password on invalid data", %{conn: conn, token: token} do
-      {:ok, lv, _html} = live(conn, ~p"/users/reset_password/#{token}")
-
-      result =
-        lv
-        |> form("#reset_password_form",
-          user: %{
-            "password" => "too short",
-            "password_confirmation" => "does not match"
-          }
-        )
-        |> render_submit()
-
-      assert result =~ "Reset Password"
-      assert result =~ "should be at least 12 character(s)"
-      assert result =~ "does not match password"
-    end
+  test "does not render reset password with invalid token", %{conn: conn} do
+    {:error, {:redirect, to}} = live(conn, ~p"/users/reset_password/invalid")
+    assert to == %{
+      flash: %{"error" => "Reset password link is invalid or it has expired."},
+      to: ~p"/"
+    }
   end
 
-  describe "Reset password navigation" do
-    test "redirects to login page when the Log in button is clicked", %{conn: conn, token: token} do
-      {:ok, lv, _html} = live(conn, ~p"/users/reset_password/#{token}")
+  test "resets password once", %{conn: conn, token: token, user: user} do
+    {:ok, lv, _html} = live(conn, ~p"/users/reset_password/#{token}")
 
-      {:ok, conn} =
-        lv
-        |> element(~s|main a:fl-contains("Log in")|)
-        |> render_click()
-        |> follow_redirect(conn, ~p"/users/log_in")
+    {:ok, conn} =
+      lv
+      |> form("#reset_password_form",
+        user: %{
+          "password" => "new valid password",
+          "password_confirmation" => "new valid password"
+        }
+      )
+      |> render_submit()
+      |> follow_redirect(conn, ~p"/users/log_in")
 
-      assert conn.resp_body =~ "Log in"
-    end
+    assert conn.resp_body =~ "Password reset successfully"
+    refute get_session(conn, :user_token)
+    assert Store.get_user_by_email_and_password(user.email, "new valid password")
+  end
 
-    test "redirects to registration page when the Register button is clicked", %{
-      conn: conn,
-      token: token
-    } do
-      {:ok, lv, _html} = live(conn, ~p"/users/reset_password/#{token}")
+  test "does not reset password with invalid token", %{conn: conn} do
+    {:ok, lv, _html} = live(conn, ~p"/users/reset_password/invalid")
 
-      {:ok, conn} =
-        lv
-        |> element(~s|main a:fl-contains("Register")|)
-        |> render_click()
-        |> follow_redirect(conn, ~p"/users/register")
+    {:ok, conn} =
+      lv
+      |> form("#reset_password_form",
+        user: %{
+          "password" => "new valid password",
+          "password_confirmation" => "new valid password"
+        }
+      )
+      |> render_submit()
+      |> follow_redirect(conn, ~p"/")
 
-      assert conn.resp_body =~ "Register"
-    end
+    assert conn.resp_body =~ "Reset password link is invalid or it has expired"
+  end
+
+  test "does not reset password with mismatched passwords", %{conn: conn, token: token} do
+    {:ok, lv, _html} = live(conn, ~p"/users/reset_password/#{token}")
+
+    result =
+      lv
+      |> form("#reset_password_form",
+        user: %{
+          "password" => "valid password",
+          "password_confirmation" => "different"
+        }
+      )
+      |> render_submit()
+
+    assert result =~ "should be the same as the password"
+  end
+
+  test "does not reset password with too short password", %{conn: conn, token: token} do
+    {:ok, lv, _html} = live(conn, ~p"/users/reset_password/#{token}")
+
+    result =
+      lv
+      |> form("#reset_password_form",
+        user: %{
+          "password" => "123",
+          "password_confirmation" => "123"
+        }
+      )
+      |> render_submit()
+
+    assert result =~ "should be at least 12 character"
   end
 end

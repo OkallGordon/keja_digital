@@ -24,6 +24,7 @@ defmodule KejaDigital.Store.User do
     field :current_password, :string, virtual: true, redact: true
     field :confirmed_at, :utc_datetime
     field :role, :string, default: "Tenant"
+    field :reset_password_token, :string
 
     field :full_name, :string
     field :postal_address, :string

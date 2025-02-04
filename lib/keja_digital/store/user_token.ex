@@ -55,20 +55,13 @@ defmodule KejaDigital.Store.UserToken do
 
   defp days_for_context("confirm"), do: @confirm_validity_in_days
   defp days_for_context("reset_password"), do: @reset_password_validity_in_days
-  defp days_for_context(_), do: nil  # Catch invalid contexts
+  defp days_for_context(_), do: nil
 
   def verify_email_token_query(token, context) do
-    IO.inspect(token, label: "Raw Token Received")
-
     case Base.url_decode64(token, padding: false) do
       {:ok, decoded_token} ->
-        IO.inspect(decoded_token, label: "Decoded Token")
-
         hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
-        IO.inspect(hashed_token, label: "Hashed Token")
-
         days = days_for_context(context)
-        IO.inspect(days, label: "Validity Days for Context")
 
         query =
           from token in by_token_and_context_query(hashed_token, context),
@@ -76,20 +69,12 @@ defmodule KejaDigital.Store.UserToken do
             where: token.inserted_at > ago(^days, "day"),
             select: user
 
-        IO.inspect(Repo.all(query), label: "Query Results Before Match Check")
-
         case Repo.one(query) do
-          nil ->
-            IO.puts("No matching token found in DB. Token: #{inspect(hashed_token)}, Context: #{inspect(context)}")
-            :error
-          user ->
-            IO.puts("Token verified successfully!")
-            {:ok, user}  # Return the user, not the query
+          nil -> :error
+          user -> {:ok, user}
         end
 
-      :error ->
-        IO.puts("Token decoding failed!")
-        :error
+      :error -> :error
     end
   end
 
@@ -100,29 +85,18 @@ defmodule KejaDigital.Store.UserToken do
 
         query =
           from token in by_token_and_context_query(hashed_token, context),
-            join: user in assoc(token, :user),
-            where: token.inserted_at > ago(@change_email_validity_in_days, "day"),
-            select: user
-
-        IO.inspect(Repo.all(query), label: "Change Email Token Query Results")
+            where: token.inserted_at > ago(@change_email_validity_in_days, "day")
 
         case Repo.one(query) do
-          nil ->
-            IO.puts("Change email token validation failed!")
-            :error
-          _user ->
-            IO.puts("Change email token verified successfully!")
-            {:ok, query}  # Changed from {:ok, user}
+          nil -> :error
+          _token -> {:ok, query}
         end
 
-      :error ->
-        IO.puts("Change email token decoding failed!")
-        :error
+      :error -> :error
     end
   end
 
   def by_token_and_context_query(token, context) do
-    IO.inspect({token, context}, label: "Looking Up Token in DB")
     from UserToken, where: [token: ^token, context: ^context]
   end
 

@@ -201,9 +201,10 @@ end
       %Ecto.Changeset{data: %User{}}
 
   """
-  def change_user_email(user, attrs \\ %{}) do
-    User.email_changeset(user, attrs, validate_email: false)
-  end
+ def change_user_email(user, attrs \\ %{}) do
+  User.email_changeset(user, attrs)
+  |> Map.put(:action, :validate)
+end
 
   @doc """
   Emulates that the email will change without actually changing
@@ -242,6 +243,7 @@ end
       _ -> :error
     end
   end
+
 
   defp user_email_multi(user, email, context) do
     changeset =
@@ -422,8 +424,8 @@ end
   """
   def get_user_by_reset_password_token(token) do
     with {:ok, query} <- UserToken.verify_email_token_query(token, "reset_password"),
-         %User{} = user <- Repo.one(query) do
-      user
+         user_id <- Repo.one(query) do
+      Repo.get(User, user_id)
     else
       _ -> nil
     end

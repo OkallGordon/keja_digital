@@ -99,12 +99,12 @@ defmodule KejaDigital.Store.User do
       end
     end
 
-  defp validate_password(changeset, opts) do
-    changeset
-    |> validate_required([:password])
-    |> validate_length(:password, min: 12, max: 72)
-    |> maybe_hash_password(opts)
-  end
+    defp validate_password(changeset, opts) do
+      changeset
+      |> validate_required([:password])
+      |> validate_length(:password, min: 12, max: 72)
+      |> maybe_hash_password(opts)
+    end
 
   defp maybe_hash_password(changeset, opts) do
     hash_password? = Keyword.get(opts, :hash_password, true)
@@ -143,7 +143,7 @@ defmodule KejaDigital.Store.User do
   def password_changeset(user, attrs, opts \\ []) do
     user
     |> cast(attrs, [:password])
-    |> validate_confirmation(:password, message: "does not match password")
+    |> validate_confirmation(:password, message: "should be the same as the password")
     |> validate_password(opts)
   end
 

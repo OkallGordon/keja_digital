@@ -422,14 +422,13 @@ end
       nil
 
   """
-  def get_user_by_reset_password_token(token) do
-    with {:ok, query} <- UserToken.verify_email_token_query(token, "reset_password"),
-         user_id <- Repo.one(query) do
-      Repo.get(User, user_id)
-    else
-      _ -> nil
-    end
+ def get_user_by_reset_password_token(token) do
+  with {:ok, user_id} <- UserToken.verify_email_token_query(token, "reset_password") do
+    Repo.get(User, user_id)
+  else
+    _ -> nil
   end
+end
 
   @doc """
   Resets the user password.

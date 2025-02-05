@@ -79,25 +79,23 @@ defmodule KejaDigitalWeb.UserResetPasswordLive do
     </div>
     """
   end
-
   @impl true
   def handle_event("reset_password", %{"user" => user_params}, socket) do
+    IO.inspect(user_params, label: "Received user params")  # Debug line
+
     case Store.reset_user_password(socket.assigns.user, user_params) do
-      {:ok, _} ->
+      {:ok, _} = result ->
+        IO.inspect(result, label: "Reset success")  # Debug line
         {:noreply,
          socket
          |> put_flash(:info, "Password reset successfully.")
          |> redirect(to: ~p"/users/log_in")}
 
-      {:error, changeset} ->
+      {:error, changeset} = error ->
+        IO.inspect(error, label: "Reset error")  # Debug line
+        IO.inspect(changeset.errors, label: "Changeset errors")  # Debug line
         {:noreply, assign_form(socket, Map.put(changeset, :action, :insert))}
     end
-  end
-
-  @impl true
-  def handle_event("validate", %{"user" => user_params}, socket) do
-    changeset = Store.change_user_password(socket.assigns.user, user_params)
-    {:noreply, assign_form(socket, Map.put(changeset, :action, :validate))}
   end
 
   @impl true
@@ -106,7 +104,7 @@ defmodule KejaDigitalWeb.UserResetPasswordLive do
       {:noreply,
        socket
        |> put_flash(:error, "Reset password link has expired. Please request a new one.")
-       |> redirect(to: ~p"/users/reset_password")}
+       |> push_navigate(to: ~p"/users/reset_password")}
     else
       {:noreply, socket}
     end
@@ -122,14 +120,14 @@ defmodule KejaDigitalWeb.UserResetPasswordLive do
       nil ->
         socket
         |> put_flash(:error, "Reset password link is invalid or it has expired.")
-        |> redirect(to: ~p"/")
+        |> push_navigate(to: ~p"/")
     end
   end
 
   defp assign_user_and_token(socket, _params) do
     socket
     |> put_flash(:error, "Reset token is required")
-    |> redirect(to: ~p"/")
+    |> push_navigate(to: ~p"/")
   end
 
   defp assign_form(socket, %{} = source) do

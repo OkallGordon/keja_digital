@@ -71,7 +71,6 @@ defmodule KejaDigital.Notifications do
     - {:error, changeset} if validation fails
   """
   def create_notification_for_booking(booking, admin_id) do
-    IO.inspect(booking, label: "Booking Data")
 
     notification_attrs = %{
       title: "New Support Booking: #{booking.booking_type}",
@@ -85,7 +84,6 @@ defmodule KejaDigital.Notifications do
       admin_id: admin_id,
       is_read: false
     }
-    IO.inspect(notification_attrs, label: "Notification Attributes")
 
     create_notification(notification_attrs)
   end
@@ -111,7 +109,6 @@ defmodule KejaDigital.Notifications do
         {:ok, notification}
 
       {:error, changeset} ->
-        IO.inspect(changeset.errors, label: "Changeset Errors")
         {:error, changeset}
     end
   end

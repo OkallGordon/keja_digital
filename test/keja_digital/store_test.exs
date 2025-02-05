@@ -156,10 +156,10 @@ defmodule KejaDigital.Store.UserTokenTest do
 
     test "returns user with valid token", %{user: user} do
       {token, user_token} = UserToken.build_email_token(user, "confirm")
-      {:ok, _} = Repo.insert(user_token)  # Use {:ok, _} instead of Repo.insert!
+      {:ok, _} = Repo.insert(user_token)
 
-      assert {:ok, retrieved_user} = UserToken.verify_email_token_query(token, "confirm")
-      assert retrieved_user.id == user.id
+      assert {:ok, user_id} = UserToken.verify_email_token_query(token, "confirm")
+      assert user_id == user.id
     end
   end
 

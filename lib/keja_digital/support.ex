@@ -41,9 +41,8 @@ defmodule KejaDigital.Support do
             Phoenix.PubSub.broadcast(KejaDigital.PubSub, "admin_notifications", {:new_booking, booking})
             {:ok, booking}
 
-          {:error, changeset} ->
+          {:error, _changeset} ->
             # Handle failure if the notification creation fails
-            IO.inspect(changeset, label: "Failed to create notification")
             {:ok, booking}  # Proceed with booking creation, but log the failure
         end
 

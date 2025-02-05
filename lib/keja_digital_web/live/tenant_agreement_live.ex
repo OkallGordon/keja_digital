@@ -9,7 +9,6 @@ defmodule KejaDigitalWeb.TenantAgreementLive do
   alias KejaDigital.Store
 
   def mount(%{"tenant_id" => tenant_id}, _session, socket) do
-    IO.inspect(tenant_id, label: "Received tenant_id")
 
     if connected?(socket) do
       Phoenix.PubSub.subscribe(KejaDigital.PubSub, "tenant_agreement:#{tenant_id}")
@@ -106,8 +105,7 @@ defmodule KejaDigitalWeb.TenantAgreementLive do
       }
       assign(socket, :stats, stats)
     rescue
-      error ->
-        IO.inspect(error, label: "Stats Error")
+      _error ->
         assign(socket, :stats, initial_stats())
     end
 end

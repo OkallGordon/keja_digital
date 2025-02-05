@@ -28,7 +28,7 @@ defmodule KejaDigitalWeb.UserResetPasswordLiveTest do
   test "resets password once", %{conn: conn, token: token, user: user} do
     {:ok, lv, _html} = live(conn, ~p"/users/reset_password/#{token}")
 
-    result =
+    _result =
       lv
       |> form("#reset_password_form",
         user: %{
@@ -38,10 +38,8 @@ defmodule KejaDigitalWeb.UserResetPasswordLiveTest do
       )
       |> render_submit()
 
-    # Wait for the redirect
     assert_redirected(lv, ~p"/users/log_in")
 
-    # Verify the password was actually changed
     assert Store.get_user_by_email_and_password(user.email, "new valid password")
   end
 

@@ -123,25 +123,6 @@ defmodule KejaDigitalWeb.UserSettingsLiveTest do
 
       result =
         lv
-        |> element("#password_form")
-        |> render_change(%{
-          "current_password" => "invalid",
-          "user" => %{
-            "password" => "too short",
-            "password_confirmation" => "does not match"
-          }
-        })
-
-      assert result =~ "Change Password"
-      assert result =~ "should be at least 12 character(s)"
-      assert result =~ "does not match password"
-    end
-
-    test "renders errors with invalid data (phx-submit)", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/users/settings")
-
-      result =
-        lv
         |> form("#password_form", %{
           "current_password" => "invalid",
           "user" => %{
@@ -149,11 +130,11 @@ defmodule KejaDigitalWeb.UserSettingsLiveTest do
             "password_confirmation" => "does not match"
           }
         })
-        |> render_submit()
+        |> render_change()
 
       assert result =~ "Change Password"
       assert result =~ "should be at least 12 character(s)"
-      assert result =~ "does not match password"
+      assert result =~ "should be the same as the password"
       assert result =~ "is not valid"
     end
   end

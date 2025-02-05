@@ -6,7 +6,6 @@ defmodule KejaDigitalWeb.TenantAgreementLive.FormComponent do
 
   @impl true
   def render(assigns) do
-    IO.inspect(assigns.form_submitted, label: "Form Submitted")
 
     ~H"""
     <div>

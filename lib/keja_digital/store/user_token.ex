@@ -57,26 +57,27 @@ defmodule KejaDigital.Store.UserToken do
   defp days_for_context("reset_password"), do: @reset_password_validity_in_days
   defp days_for_context(_), do: nil
 
-  def verify_email_token_query(token, context) do
-    case Base.url_decode64(token, padding: false) do
-      {:ok, decoded_token} ->
-        hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
-        days = days_for_context(context)
+  # In your token module
+def verify_email_token_query(token, context) do
+  case Base.url_decode64(token, padding: false) do
+    {:ok, decoded_token} ->
+      hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
+      days = days_for_context(context)
 
-        query =
-          from token in by_token_and_context_query(hashed_token, context),
-            join: user in assoc(token, :user),
-            where: token.inserted_at > ago(^days, "day"),
-            select: user
+      query =
+        from token in by_token_and_context_query(hashed_token, context),
+          join: user in assoc(token, :user),
+          where: token.inserted_at > ago(^days, "day"),
+          select: user.id
 
-        case Repo.one(query) do
-          nil -> :error
-          user -> {:ok, user}
-        end
+      case Repo.one(query) do
+        nil -> :error
+        user_id -> {:ok, user_id}
+      end
 
-      :error -> :error
-    end
+    :error -> :error
   end
+end
 
   def verify_change_email_token_query(token, "change:" <> _ = context) do
     case Base.url_decode64(token, padding: false) do

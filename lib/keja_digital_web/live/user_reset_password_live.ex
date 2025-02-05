@@ -5,7 +5,6 @@ defmodule KejaDigitalWeb.UserResetPasswordLive do
 
   alias KejaDigital.Store.User
 
-  # Add lifecycle hook to prevent memory leaks
   @impl true
   def mount(params, _session, socket) do
     if connected?(socket), do: :timer.send_interval(1000 * 60 * 60, self(), :check_token_expiry)

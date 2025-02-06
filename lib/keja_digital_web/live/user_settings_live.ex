@@ -3,6 +3,7 @@ defmodule KejaDigitalWeb.UserSettingsLive do
 
   alias KejaDigital.Store
 
+  #alias KejaDigital.Store.User
   def render(assigns) do
     ~H"""
     <div class="min-h-screen">
@@ -180,7 +181,7 @@ defmodule KejaDigitalWeb.UserSettingsLive do
 
     password_form =
       socket.assigns.current_user
-      |> Store.change_user_password(user_params)
+      |> Store.change_user_password(user_params, password)
       |> Map.put(:action, :validate)
       |> to_form()
 

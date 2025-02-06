@@ -33,16 +33,11 @@ defmodule KejaDigitalWeb.UserConfirmationLive do
   def handle_event("confirm_account", %{"user" => %{"token" => token}}, socket) do
     case Store.confirm_user(token) do
       {:ok, _} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "User confirmed successfully.")
-         |> redirect(to: ~p"/")}
+        socket
+        |> put_flash(:info, "User confirmed successfully.")
+        |> redirect(to: ~p"/")
 
       :error ->
-        # If there is a current user and the account was already confirmed,
-        # then odds are that the confirmation link was already visited, either
-        # by some automation or by the user themselves, so we redirect without
-        # a warning message.
         case socket.assigns do
           %{current_user: %{confirmed_at: confirmed_at}} when not is_nil(confirmed_at) ->
             {:noreply, redirect(socket, to: ~p"/")}

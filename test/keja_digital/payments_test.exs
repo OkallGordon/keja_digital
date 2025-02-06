@@ -12,7 +12,8 @@ defmodule KejaDigital.Payments.MpesaPaymentTest do
       phone_number: "0712345678",
       till_number: "4154742",
       status: "completed",
-      paid_at: DateTime.utc_now()
+      paid_at: DateTime.utc_now(),
+      tenant_id: nil
     }
 
     setup do
@@ -34,11 +35,13 @@ defmodule KejaDigital.Payments.MpesaPaymentTest do
         })
         |> Repo.insert()
 
-      %{user: user}
+      valid_attrs = Map.put(@valid_attrs, :tenant_id, user.id)
+
+      {:ok, %{user: user, valid_attrs: valid_attrs}}
     end
 
-    test "creates valid changeset with all attributes", %{user: user} do
-      changeset = MpesaPayment.changeset(%MpesaPayment{}, @valid_attrs)
+    test "creates valid changeset with all attributes", %{user: user, valid_attrs: valid_attrs} do
+      changeset = MpesaPayment.changeset(%MpesaPayment{}, valid_attrs)
       assert changeset.valid?
       assert get_change(changeset, :user_id) == user.id
     end
@@ -53,7 +56,8 @@ defmodule KejaDigital.Payments.MpesaPaymentTest do
         phone_number: ["Phone number is missing", "can't be blank"],
         till_number: ["Invalid till number", "can't be blank"],
         status: ["can't be blank"],
-        paid_at: ["can't be blank"]
+        paid_at: ["can't be blank"],
+        tenant_id: ["can't be blank"]
       }
     end
 
@@ -63,15 +67,15 @@ defmodule KejaDigital.Payments.MpesaPaymentTest do
       assert %{till_number: ["Invalid till number"]} = errors_on(changeset)
     end
 
-    test "validates unique transaction_id constraint", %{user: _user} do
+    test "validates unique transaction_id constraint", %{valid_attrs: valid_attrs} do
       # First, insert a payment
       {:ok, _payment} = %MpesaPayment{}
-        |> MpesaPayment.changeset(@valid_attrs)
+        |> MpesaPayment.changeset(valid_attrs)
         |> Repo.insert()
 
       # Try to insert another payment with the same transaction_id
       {:error, changeset} = %MpesaPayment{}
-        |> MpesaPayment.changeset(@valid_attrs)
+        |> MpesaPayment.changeset(valid_attrs)
         |> Repo.insert()
 
       assert %{transaction_id: ["has already been taken"]} = errors_on(changeset)
@@ -83,20 +87,22 @@ defmodule KejaDigital.Payments.MpesaPaymentTest do
       assert %{phone_number: ["No user found with this phone number"]} = errors_on(changeset)
     end
 
-    test "assigns correct user_id based on phone number", %{user: user} do
-      changeset = MpesaPayment.changeset(%MpesaPayment{}, @valid_attrs)
+    test "assigns correct user_id based on phone number", %{user: user, valid_attrs: valid_attrs} do
+      changeset = MpesaPayment.changeset(%MpesaPayment{}, valid_attrs)
       assert changeset.valid?
       assert get_change(changeset, :user_id) == user.id
     end
 
-    test "handles different phone number formats", %{user: user} do
+    test "handles different phone number formats", %{user: user, valid_attrs: valid_attrs} do
       # Update user's phone number to include country code
       {:ok, user} =
         user
         |> Ecto.Changeset.change(%{phone_number: "+254712345678"})
         |> Repo.update()
 
-      attrs = Map.put(@valid_attrs, :phone_number, "+254712345678")
+      attrs = valid_attrs
+        |> Map.put(:phone_number, "+254712345678")
+
       changeset = MpesaPayment.changeset(%MpesaPayment{}, attrs)
       assert changeset.valid?
       assert get_change(changeset, :user_id) == user.id

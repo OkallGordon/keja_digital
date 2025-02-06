@@ -282,10 +282,17 @@ end
       %Ecto.Changeset{data: %User{}}
 
   """
-  def change_user_password(user, attrs \\ %{}) do
+
+
+  def change_user_password(user, attrs \\ %{}, current_password \\ nil) do
     User.password_changeset(user, attrs, hash_password: false)
+    |> maybe_validate_current_password(current_password)
   end
 
+  defp maybe_validate_current_password(changeset, nil), do: changeset
+  defp maybe_validate_current_password(changeset, current_password) do
+    User.validate_current_password(changeset, current_password)
+  end
   @doc """
   Updates the user password.
 
@@ -372,15 +379,17 @@ end
   If the token matches, the user account is marked as confirmed
   and the token is deleted.
   """
-  def confirm_user(token) do
-    with {:ok, query} <- UserToken.verify_email_token_query(token, "confirm"),
-         %User{} = user <- Repo.one(query),
-         {:ok, %{user: user}} <- Repo.transaction(confirm_user_multi(user)) do
-      {:ok, user}
-    else
-      _ -> :error
-    end
+ def confirm_user(token) do
+  with {:ok, query} <- UserToken.verify_email_token_query(token, "confirm"),
+       {:ok, user_id} <- query,  # Now it returns user_id
+       %User{} = user <- Repo.get(User, user_id),  # Fetch the user by ID
+       {:ok, %{user: user}} <- Repo.transaction(confirm_user_multi(user)) do
+    {:ok, user}
+  else
+    _ -> :error
   end
+end
+
 
   defp confirm_user_multi(user) do
     Ecto.Multi.new()

@@ -58,26 +58,30 @@ defmodule KejaDigital.Store.UserToken do
   defp days_for_context(_), do: nil
 
   # In your token module
-def verify_email_token_query(token, context) do
-  case Base.url_decode64(token, padding: false) do
-    {:ok, decoded_token} ->
-      hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
-      days = days_for_context(context)
+  def verify_email_token_query(token, context, return_query \\ false) do
+    case Base.url_decode64(token, padding: false) do
+      {:ok, decoded_token} ->
+        hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
+        days = days_for_context(context)
 
-      query =
-        from token in by_token_and_context_query(hashed_token, context),
-          join: user in assoc(token, :user),
-          where: token.inserted_at > ago(^days, "day"),
-          select: user.id
+        query =
+          from token in by_token_and_context_query(hashed_token, context),
+            join: user in assoc(token, :user),
+            where: token.inserted_at > ago(^days, "day"),
+            select: user.id  # Select user.id by default
 
-      case Repo.one(query) do
-        nil -> :error
-        user_id -> {:ok, user_id}
-      end
+        if return_query do
+          {:ok, query}  # Return the query itself if return_query is true
+        else
+          case Repo.one(query) do
+            nil -> :error
+            user_id -> {:ok, user_id}  # Return user_id if not returning query
+          end
+        end
 
-    :error -> :error
+      :error -> :error
+    end
   end
-end
 
   def verify_change_email_token_query(token, "change:" <> _ = context) do
     case Base.url_decode64(token, padding: false) do

@@ -28,26 +28,19 @@ defmodule KejaDigitalWeb.UserConfirmationLive do
     {:ok, assign(socket, form: form), temporary_assigns: [form: nil]}
   end
 
-  # Do not log in the user after confirmation to avoid a
-  # leaked token giving the user access to the account.
-  def handle_event("confirm_account", %{"user" => %{"token" => token}}, socket) do
-    case Store.confirm_user(token) do
-      {:ok, _} ->
-        socket
-        |> put_flash(:info, "User confirmed successfully.")
-        |> redirect(to: ~p"/")
+def handle_event("confirm_account", %{"user" => %{"token" => token}}, socket) do
+  case Store.confirm_user(token) do
+    {:ok, _} ->
+      {:noreply,
+       socket
+       |> put_flash(:info, "User confirmed successfully")
+       |> redirect(to: ~p"/")}
 
-      :error ->
-        case socket.assigns do
-          %{current_user: %{confirmed_at: confirmed_at}} when not is_nil(confirmed_at) ->
-            {:noreply, redirect(socket, to: ~p"/")}
-
-          %{} ->
-            {:noreply,
-             socket
-             |> put_flash(:error, "User confirmation link is invalid or it has expired.")
-             |> redirect(to: ~p"/")}
-        end
-    end
+    :error ->
+      {:noreply,
+       socket
+       |> put_flash(:error, "User confirmation link is invalid or it has expired.")
+       |> redirect(to: ~p"/")}
   end
+end
 end

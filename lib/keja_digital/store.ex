@@ -381,12 +381,14 @@ end
   """
  def confirm_user(token) do
   with {:ok, query} <- UserToken.verify_email_token_query(token, "confirm"),
-       {:ok, user_id} <- query,  # Now it returns user_id
-       %User{} = user <- Repo.get(User, user_id),  # Fetch the user by ID
+       {:ok, user_id} <- query,
+       %User{} = user <- Repo.get(User, user_id),
        {:ok, %{user: user}} <- Repo.transaction(confirm_user_multi(user)) do
     {:ok, user}
   else
-    _ -> :error
+    nil -> :error  # When user is not found
+    {:error, _} -> :error  # When token verification fails
+    _ -> :error  # Catch all other errors
   end
 end
 

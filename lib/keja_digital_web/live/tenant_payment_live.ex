@@ -8,6 +8,8 @@ defmodule KejaDigitalWeb.UserPaymentLive do
 
     if connected?(socket) do
       Payments.subscribe_to_payment_updates(user_id)
+      # Start periodic stats updates if needed
+      Process.send_after(self(), :update_stats, 5000)
     end
 
     payments = Payments.get_user_payments(user_id)
@@ -21,6 +23,17 @@ defmodule KejaDigitalWeb.UserPaymentLive do
       end)
 
     {:ok, assign(socket, user_id: user_id, payments: payments)}
+  end
+
+  @impl true
+  def handle_info(:update_stats, socket) do
+    # Schedule the next update
+    Process.send_after(self(), :update_stats, 5000)
+
+    # Fetch fresh payment data
+    updated_payments = Payments.get_user_payments(socket.assigns.user_id)
+
+    {:noreply, assign(socket, payments: updated_payments)}
   end
 
   @impl true
@@ -46,7 +59,6 @@ defmodule KejaDigitalWeb.UserPaymentLive do
         "Your rent payment of KES #{payment.amount} for Door #{payment.door_number} is #{payment.days_overdue} days overdue."
     end
   end
-
   @impl true
   def render(assigns) do
     ~H"""

@@ -71,6 +71,8 @@ defmodule KejaDigitalWeb.UserLoginLive do
             </div>
 
             <:actions>
+            <.link navigate={~p"/tenant/dashboard"} class="font-semibold text-blue-600 hover:text-blue-500">
+            </.link>
               <.button
                 phx-disable-with="Logging in..."
                 class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"

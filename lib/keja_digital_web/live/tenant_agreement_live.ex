@@ -17,7 +17,7 @@ defmodule KejaDigitalWeb.TenantAgreementLive do
       send(self(), :update_stats)
     end
 
-    # Fetch the agreement
+    # So here we fetch the agreement for the current tenant
     case Repo.get_by(TenantAgreementLive, id: tenant_id) do
       nil ->
         {:ok, assign(socket, agreement: nil, error: "Agreement not found", stats: initial_stats())}

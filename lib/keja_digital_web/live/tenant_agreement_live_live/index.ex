@@ -13,26 +13,13 @@ defmodule KejaDigitalWeb.TenantAgreementLive.Index do
         # Fetch the tenancy agreement for the current user
         tenant_agreement_live = Agreements.list_tenant_agreements_for_user(user.id)
 
-        # Assign the tenancy agreements to the socket
-        socket = assign(socket, :tenant_agreement_live, tenant_agreement_live)
-        socket = assign(socket, :current_user, user)
+        socket =
+          socket
+          |> assign(:current_user, user)
+          |> stream(:tenant_agreement_live, tenant_agreement_live)
+          |> assign_can_edit(tenant_agreement_live)
 
-        # Initialize stream for tenancy agreements
-        socket = socket |> stream(:tenant_agreement_live, tenant_agreement_live)
-
-        # Check if there is any tenancy agreement and if it has been submitted
-        can_edit = case tenant_agreement_live do
-          [] -> true  # No agreement, so can edit (create new)
-          [agreement] ->
-            if agreement.submitted do
-              false  # Agreement is already submitted, cannot edit
-            else
-              true  # Agreement exists but not submitted, can edit
-            end
-        end
-
-        # Return socket with the correct page title and editing permissions
-        {:ok, socket |> assign(:can_edit, can_edit) |> assign(:page_title, if(can_edit, do: "New Tenancy Agreement", else: "View Tenancy Agreement"))}
+        {:ok, socket}
 
       nil ->
         {:ok, push_navigate(socket, to: "/login")}
@@ -46,25 +33,31 @@ defmodule KejaDigitalWeb.TenantAgreementLive.Index do
 
   defp apply_action(socket, :edit, %{"id" => id}) do
     socket
-    |> assign(:page_title, "Edit Tenant agreement live")
+    |> assign(:page_title, "Edit Tenant Agreement")
     |> assign(:tenant_agreement_live, Agreements.get_tenant_agreement_live!(id))
   end
 
   defp apply_action(socket, :new, _params) do
     socket
-    |> assign(:page_title, "New Tenant agreement live")
+    |> assign(:page_title, "New Tenant Agreement")
     |> assign(:tenant_agreement_live, %TenantAgreementLive{})
   end
 
   defp apply_action(socket, :index, _params) do
     socket
-    |> assign(:page_title, "Listing Tenant agreements")
+    |> assign(:page_title, "Listing Tenant Agreements")
     |> assign(:tenant_agreement_live, nil)
   end
 
   @impl true
   def handle_info({KejaDigitalWeb.TenantAgreementLive.FormComponent, {:saved, tenant_agreement_live}}, socket) do
-    {:noreply, stream_insert(socket, :tenant_agreements, tenant_agreement_live)}
+    {:noreply, stream_insert(socket, :tenant_agreement_live, tenant_agreement_live)}
+  end
+
+  @impl true
+  def handle_info(:update_stats, socket) do
+    # Handle the update_stats message
+    {:noreply, socket}
   end
 
   @impl true
@@ -72,6 +65,19 @@ defmodule KejaDigitalWeb.TenantAgreementLive.Index do
     tenant_agreement_live = Agreements.get_tenant_agreement_live!(id)
     {:ok, _} = Agreements.delete_tenant_agreement_live(tenant_agreement_live)
 
-    {:noreply, stream_delete(socket, :tenant_agreements, tenant_agreement_live)}
+    {:noreply, stream_delete(socket, :tenant_agreement_live, tenant_agreement_live)}
+  end
+
+  # Private helper functions
+  defp assign_can_edit(socket, tenant_agreement_live) do
+    can_edit = case tenant_agreement_live do
+      [] -> true  # No agreement, so can edit (create new)
+      [agreement] ->
+        not agreement.submitted  # Can edit if not submitted
+    end
+
+    socket
+    |> assign(:can_edit, can_edit)
+    |> assign(:page_title, if(can_edit, do: "New Tenancy Agreement", else: "View Tenancy Agreement"))
   end
 end

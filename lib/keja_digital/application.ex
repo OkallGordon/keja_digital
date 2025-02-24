@@ -7,6 +7,10 @@ defmodule KejaDigital.Application do
 
   @impl true
   def start(_type, _args) do
+
+    validate_mpesa_config()
+
+
     children = [
       KejaDigitalWeb.Telemetry,
       KejaDigital.Repo,
@@ -26,6 +30,29 @@ defmodule KejaDigital.Application do
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: KejaDigital.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  defp validate_mpesa_config do
+    required_keys = [:consumer_key, :consumer_secret, :business_short_code, :passkey]
+    config = Application.get_env(:keja_digital, :mpesa)
+
+    case validate_keys(config, required_keys) do
+      :ok ->
+        Logger.info("MPesa configuration validated successfully")
+      {:error, missing} ->
+        Logger.warning("Missing MPesa configuration keys: #{inspect(missing)}")
+        if Application.get_env(:keja_digital, :env) == :prod do
+          raise "Missing required MPesa configuration in production: #{inspect(missing)}"
+        end
+    end
+  end
+
+  defp validate_keys(config, required_keys) do
+    missing = Enum.filter(required_keys, fn key ->
+      is_nil(config[key]) || config[key] == ""
+    end)
+
+    if Enum.empty?(missing), do: :ok, else: {:error, missing}
   end
 
   # Tell Phoenix to update the endpoint configuration

@@ -1,10 +1,3 @@
-# This file is responsible for configuring your application
-# and its dependencies with the aid of the Config module.
-#
-# This configuration file is loaded before any dependency and
-# is restricted to this project.
-
-# General application configuration
 import Config
 
 config :keja_digital,
@@ -23,15 +16,9 @@ config :keja_digital, KejaDigitalWeb.Endpoint,
   live_view: [signing_salt: "NaN881MN"]
 
 # Configures the mailer
-#
-# By default it uses the "Local" adapter which stores the emails
-# locally. You can see the emails in your browser, at "/dev/mailbox".
-#
-# For production it's recommended to configure a different adapter
-# at the `config/runtime.exs`.
 config :keja_digital, KejaDigital.Mailer, adapter: Swoosh.Adapters.Local
 
-# Configure esbuild (the version is required)
+# Configure esbuild
 config :esbuild,
   version: "0.17.11",
   keja_digital: [
@@ -41,7 +28,7 @@ config :esbuild,
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
 
-# Configure tailwind (the version is required)
+# Configure tailwind
 config :tailwind,
   version: "3.4.3",
   keja_digital: [
@@ -61,19 +48,14 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# MPesa Configuration - Development defaults
 config :keja_digital, :mpesa,
-  consumer_key: "hoi93y89r893u1ihf9fhqhhqyfyfqfjf",
-  consumer_secret: "dbnwnbwhhwh36i322gdwbjkdjwwjkwd",
-  base_url: "https://sandbox.safaricom.co.ke"
-
-
-# Import environment specific config. This must remain at the bottom
-# of this file so it overrides the configuration defined above.
-import_config "#{config_env()}.exs"
-
-config :keja_digital, :mpesa,
-  consumer_key: System.get_env("MPESA_CONSUMER_KEY"),
-  consumer_secret: System.get_env("MPESA_CONSUMER_SECRET"),
+  consumer_key: System.get_env("MPESA_CONSUMER_KEY", "hoi93y89r893u1ihf9fhqhhqyfyfqfjf"),
+  consumer_secret: System.get_env("MPESA_CONSUMER_SECRET", "dbnwnbwhhwh36i322gdwbjkdjwwjkwd"),
   passkey: System.get_env("MPESA_PASSKEY"),
   business_short_code: System.get_env("MPESA_BUSINESS_SHORT_CODE"),
-  callback_url: System.get_env("MPESA_CALLBACK_URL")
+  callback_url: System.get_env("MPESA_CALLBACK_URL"),
+  base_url: "https://sandbox.safaricom.co.ke"
+
+# Import environment specific config
+import_config "#{config_env()}.exs"

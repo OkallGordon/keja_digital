@@ -4,6 +4,7 @@ defmodule KejaDigital.Application do
   @moduledoc false
 
   use Application
+  require Logger
 
   @impl true
   def start(_type, _args) do
@@ -55,8 +56,7 @@ defmodule KejaDigital.Application do
     if Enum.empty?(missing), do: :ok, else: {:error, missing}
   end
 
-  # Tell Phoenix to update the endpoint configuration
-  # whenever the application is updated.
+
   @impl true
   def config_change(changed, _new, removed) do
     KejaDigitalWeb.Endpoint.config_change(changed, removed)

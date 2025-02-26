@@ -37,3 +37,7 @@ npm-debug.log
 
 
 .codegpt
+
+# Ignores the vital credentials like the password
+.env
+.env.local

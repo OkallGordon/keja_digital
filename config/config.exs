@@ -48,14 +48,5 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
-# MPesa Configuration - Development defaults
-config :keja_digital, :mpesa,
-  consumer_key: System.get_env("MPESA_CONSUMER_KEY"),
-  consumer_secret: System.get_env("MPESA_CONSUMER_SECRET"),
-  business_short_code: System.get_env("MPESA_SHORTCODE"),
-  passkey: System.get_env("MPESA_PASSKEY"),
-  base_url: System.get_env("MPESA_BASE_URL") || "https://sandbox.safaricom.co.ke",
-  callback_url: System.get_env("MPESA_CALLBACK_URL") || "https://example.com/mpesa/callback"
-
-# Import environment specific config
+  # import config/runtime.exs
 import_config "#{config_env()}.exs"

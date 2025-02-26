@@ -19,3 +19,10 @@ config :logger, level: :info
 
 # Runtime production configuration, including reading
 # of environment variables, is done on config/runtime.exs.
+
+# Add this at the end of your dev.exs file
+config :keja_digital, :mpesa,
+  consumer_key: System.get_env("MPESA_CONSUMER_KEY"),
+  consumer_secret: System.get_env("MPESA_CONSUMER_SECRET"),
+  business_short_code: System.get_env("MPESA_BUSINESS_SHORT_CODE"),
+  passkey: System.get_env("MPESA_PASSKEY")

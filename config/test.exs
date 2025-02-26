@@ -38,3 +38,10 @@ config :phoenix, :plug_init_mode, :runtime
 # Enable helpful, but potentially expensive runtime checks
 config :phoenix_live_view,
   enable_expensive_runtime_checks: true
+
+# Add this at the end of your dev.exs file
+config :keja_digital, :mpesa,
+  consumer_key: System.get_env("MPESA_CONSUMER_KEY"),
+  consumer_secret: System.get_env("MPESA_CONSUMER_SECRET"),
+  business_short_code: System.get_env("MPESA_BUSINESS_SHORT_CODE"),
+  passkey: System.get_env("MPESA_PASSKEY")

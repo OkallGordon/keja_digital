@@ -65,7 +65,8 @@ defmodule KejaDigital.MixProject do
       {:bandit, "~> 1.5"},
       {:httpoison, "~> 2.2.1"},
       {:pdf_generator, "~> 0.6.2"},
-      {:number, "~> 1.0.5"}
+      {:number, "~> 1.0.5"},
+      {:dotenv, "~> 3.0"}
     ]
   end
 

@@ -66,7 +66,7 @@ defmodule KejaDigital.MixProject do
       {:httpoison, "~> 2.2.1"},
       {:pdf_generator, "~> 0.6.2"},
       {:number, "~> 1.0.5"},
-      {:dotenv, "~> 3.0"}
+      {:dotenv, "~> 3.1.0", only: [:dev, :test]}
     ]
   end
 

@@ -8,6 +8,9 @@ defmodule KejaDigital.Application do
 
   @impl true
   def start(_type, _args) do
+    if Mix.env() in [:dev, :test] do
+      Dotenv.load!
+    end
 
     validate_mpesa_config()
 

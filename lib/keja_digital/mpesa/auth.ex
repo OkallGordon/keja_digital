@@ -2,7 +2,7 @@ defmodule KejaDigital.Mpesa.Auth do
   use GenServer
   require Logger
 
-  @refresh_interval :timer.minutes(50)  # Refresh token before the 1-hour expiry
+  @refresh_interval :timer.minutes(50)
 
   def start_link(_opts) do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
@@ -13,6 +13,7 @@ defmodule KejaDigital.Mpesa.Auth do
   end
 
   @impl true
+  @spec init(any()) :: {:ok, %{expires_at: nil, token: nil}, {:continue, :fetch_token}}
   def init(_opts) do
     {:ok, %{token: nil, expires_at: nil}, {:continue, :fetch_token}}
   end
@@ -43,12 +44,15 @@ defmodule KejaDigital.Mpesa.Auth do
     case fetch_new_token() do
       {:ok, token} ->
         Process.send_after(self(), :refresh_token, @refresh_interval)
-        %{token: token, expires_at: DateTime.utc_now() |> DateTime.add(3600, :second)}
+        %{token: token, expires_at: DateTime.utc_now() |> DateTime.add(3600, :second), failures: 0}
 
-      {:error, reason} ->
-        Logger.error("Failed to fetch MPesa token: #{inspect(reason)}")
-        Process.send_after(self(), :refresh_token, :timer.minutes(1))
-        state
+      {:error, _reason} ->
+        failures = (state[:failures] || 0) + 1
+        # Exponential backoff: 1min, 2min, 4min, 8min, etc. up to 30min max
+        backoff = min(:timer.minutes(2 ** failures), :timer.minutes(30))
+        Logger.error("Failed to fetch MPesa token (attempt #{failures}). Retrying in #{div(backoff, 60000)} minutes")
+        Process.send_after(self(), :refresh_token, backoff)
+        Map.put(state, :failures, failures)
     end
   end
 
@@ -66,17 +70,29 @@ defmodule KejaDigital.Mpesa.Auth do
       {"Content-Type", "application/json"}
     ]
 
-    case HTTPoison.get("https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials", headers) do
+    url = config[:base_url] || "https://sandbox.safaricom.co.ke"
+    endpoint = "#{url}/oauth/v1/generate?grant_type=client_credentials"
+
+    # Add timeout options to HTTPoison request
+    options = [recv_timeout: 15000, timeout: 15000]
+
+    case HTTPoison.get(endpoint, headers, options) do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
         case Jason.decode(body) do
-          {:ok, %{"access_token" => token}} -> {:ok, token}
-          error -> {:error, {:decode_error, error}}
+          {:ok, %{"access_token" => token}} ->
+            Logger.info("Successfully fetched MPesa token")
+            {:ok, token}
+          error ->
+            Logger.error("Failed to decode MPesa token response: #{inspect(error)}")
+            {:error, {:decode_error, error}}
         end
 
       {:ok, %HTTPoison.Response{status_code: status_code, body: body}} ->
+        Logger.error("MPesa token request failed with status #{status_code}: #{body}")
         {:error, {:http_error, status_code, body}}
 
       {:error, %HTTPoison.Error{reason: reason}} ->
+        Logger.error("MPesa token request error: #{inspect(reason)}")
         {:error, {:http_error, reason}}
     end
   end

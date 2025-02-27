@@ -95,6 +95,13 @@ defmodule KejaDigitalWeb.MpesaPaymentLive do
      |> load_payments()}
   end
 
+  def handle_info(:update_stats, socket) do
+    {:noreply,
+     socket
+     |> assign(:loading, true)
+     |> load_payments()}
+  end
+
   defp load_payments(socket) do
     payments = list_payments(
       socket.assigns.tenant_id,

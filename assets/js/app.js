@@ -92,7 +92,17 @@ window.addEventListener("phx:download-file", (event) => {
   }
 
   try {
-    const blob = new Blob([data], { type: content_type });
+    // Decode base64 data to binary
+    const binaryString = atob(data);
+    
+    // Convert binary string to array buffer
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    
+    // Create blob from binary data
+    const blob = new Blob([bytes], { type: content_type });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     
@@ -108,9 +118,10 @@ window.addEventListener("phx:download-file", (event) => {
       URL.revokeObjectURL(url);
     }, 100);
     
+    console.log("Download initiated for:", filename);
   } catch (error) {
     console.error("Download failed:", error);
-    // Optionally trigger a Phoenix event to notify the server
+    console.error("Error details:", error.stack);
     window.dispatchEvent(
       new CustomEvent("phx:download-error", { 
         detail: { error: error.message } 
@@ -118,39 +129,6 @@ window.addEventListener("phx:download-file", (event) => {
     );
   }
 });
-
-// In assets/js/app.js or where you initialize Liveview
-if (typeof liveSocket === 'undefined') {
-  let liveSocket = new LiveSocket("/live", Socket, {
-    params: {_csrf_token: csrfToken},
-    hooks: {
-      DownloadFile: {
-        mounted() {
-          this.handleEvent("download-file", ({data, filename, content_type}) => {
-            // Convert base64 back to binary
-            const binaryData = atob(data);
-            
-            // Create blob from binary data
-            const bytes = new Uint8Array(binaryData.length);
-            for (let i = 0; i < binaryData.length; i++) {
-              bytes[i] = binaryData.charCodeAt(i);
-            }
-            const blob = new Blob([bytes], { type: content_type });
-            
-            // Create download link and trigger click
-            const link = document.createElement('a');
-            link.href = window.URL.createObjectURL(blob);
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(link.href);
-          });
-        }
-      }
-    }
-  });
-}
 
 const MobileMenu = {
   mounted() {

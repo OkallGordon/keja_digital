@@ -32,6 +32,8 @@ defmodule KejaDigitalWeb.Router do
     get "/properties/available/and_pricing", PropertyController, :available
     get "/support/contact", SupportController, :contact
     get "/legal/privacy", LegalController, :privacy
+    get "/book/:id", BookingController, :new
+    post "/book/:id", BookingController, :create
 
   end
 

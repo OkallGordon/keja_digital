@@ -2,18 +2,27 @@
   <h1 class="text-3xl font-bold text-gray-900 mb-6">Available Rooms and their prices</h1>
   
   <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-    <div class="bg-white shadow-md rounded-lg p-6">
-      <h2 class="text-xl font-semibold text-gray-800 mb-4">Rooms in Kisumu, Manyatta B</h2>
-      <ul class="space-y-2 text-gray-600">
-        <li>✓ Location: Manyatta B, Kisumu</li>
-        <li>✓ Price: KSH 4,500 per month</li>
-        <li>✓ Amenities: WiFi, Clean Washroom</li>
-        <li>✓ Security: 24/7 Monitored</li>
-      </ul>
-      <button class="mt-4 w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700">
-        Inquire Now
-      </button>
-    </div>
+    <%= if Enum.empty?(@available_doors) do %>
+      <div class="bg-yellow-50 shadow-md rounded-lg p-6 col-span-full">
+        <h2 class="text-xl font-semibold text-yellow-700 mb-4 text-center">All Rooms Currently Occupied</h2>
+        <p class="text-center text-yellow-600">Check back later for availability or contact us for more information.</p>
+      </div>
+    <% else %>
+      <%= for door <- @available_doors do %>
+        <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-lg transition-shadow duration-300">
+          <h2 class="text-xl font-semibold text-gray-800 mb-4"> House Name: <br><%= door.number %></h2>
+          <ul class="space-y-2 text-gray-600">
+            <li>✓ Location: Manyatta B, Kisumu</li>
+            <li>✓ Price: KSH 4,500 per month</li>
+            <li>✓ Amenities: WiFi, Clean Washroom</li>
+            <li>✓ Security: 24/7 Monitored</li>
+          </ul>
+          <a href={~p"/book/#{door.id}"} class="mt-4 block w-full text-center bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition-colors duration-300">
+            Book This Room
+          </a>
+        </div>
+      <% end %>
+    <% end %>
   </div>
 </div>
 
@@ -26,14 +35,18 @@
       <thead>
         <tr class="bg-gray-100">
           <th class="py-2 px-4 text-left">Room Type</th>
+          <th class="py-2 px-4 text-left">Location</th>
           <th class="py-2 px-4 text-right">Monthly Rate</th>
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td class="py-2 px-4">Standard Room - Manyatta B</td>
-          <td class="py-2 px-4 text-right">KSH 4,500</td>
-        </tr>
+        <%= for price <- @pricing_data do %>
+          <tr class="border-t">
+            <td class="py-2 px-4"><%= price.room_type %></td>
+            <td class="py-2 px-4"><%= price.location %></td>
+            <td class="py-2 px-4 text-right">KSH <%= price.price %></td>
+          </tr>
+        <% end %>
       </tbody>
     </table>
   </div>

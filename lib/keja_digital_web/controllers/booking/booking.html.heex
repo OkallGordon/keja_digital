@@ -1,0 +1,36 @@
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-gray-900 mb-6">Confirm Booking for Room <%= @door.number %></h1>
+  
+  <div class="bg-white shadow-md rounded-lg p-6">
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Room Details</h2>
+      <ul class="space-y-2 text-gray-600">
+        <li><span class="font-medium">Room Number:</span> <%= @door.number %></li>
+        <li><span class="font-medium">Location:</span> Manyatta B, Kisumu</li>
+        <li><span class="font-medium">Price:</span> KSH 4,500 per month</li>
+        <li><span class="font-medium">Amenities:</span> WiFi, Clean Washroom</li>
+        <li><span class="font-medium">Security:</span> 24/7 Monitored</li>
+      </ul>
+    </div>
+    
+    <div class="border-t pt-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Booking Terms</h2>
+      <ul class="space-y-2 text-gray-600 list-disc pl-5 mb-6">
+        <li>A deposit of one month's rent is required</li>
+        <li>Please complete payment within 24 hours to secure your booking</li>
+        <li>Your room will be available starting from the date of payment confirmation</li>
+      </ul>
+    </div>
+    
+    <div class="flex justify-end space-x-4">
+      <a href={~p"/properties/available/and_pricing"} class="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50">
+        Cancel
+      </a>
+      <.form method="post" action={~p"/book/#{@door.id}"}>
+        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+          Confirm Booking
+        </button>
+      </.form>
+    </div>
+  </div>
+</div>

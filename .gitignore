@@ -35,7 +35,6 @@ keja_digital-*.tar
 npm-debug.log
 /assets/node_modules/
 
-
 .codegpt
 
 # Ignores the vital credentials like the password

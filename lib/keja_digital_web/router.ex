@@ -1,9 +1,7 @@
 defmodule KejaDigitalWeb.Router do
   #alias KejaDigitalWeb.AdminDashboardLive
   use KejaDigitalWeb, :router
-
   import KejaDigitalWeb.AdminAuth
-
   import KejaDigitalWeb.UserAuth
 
   pipeline :browser do
@@ -32,9 +30,7 @@ defmodule KejaDigitalWeb.Router do
     live "/support/booking", SupportBookingLive
 
     get "/properties/available/and_pricing", PropertyController, :available
-
     get "/support/contact", SupportController, :contact
-
     get "/legal/privacy", LegalController, :privacy
 
   end
@@ -89,7 +85,6 @@ defmodule KejaDigitalWeb.Router do
       on_mount: [{KejaDigitalWeb.UserAuth, :ensure_authenticated}] do
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
-
 
       live "/tenant/profile", UserProfileLive
       live "/tenant_agreements", TenantAgreementLive.Index, :index
@@ -152,12 +147,9 @@ defmodule KejaDigitalWeb.Router do
       live "/agreements/:id", AgreementDetailLive
       live "/dashboard", AdminDashboardLive
       live "/dashboard/audit_logs", Admin.AuditLogsLive, as: :audit_logs
-
-
       live "/payments/:tenant_id", PaymentLive
     end
   end
-
   scope "/", KejaDigitalWeb do
     pipe_through [:browser]
 

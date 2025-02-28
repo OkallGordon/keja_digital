@@ -1,5 +1,4 @@
-# lib/keja_digital/mpesa/payment_handler.ex
-defmodule KejaDigital.Mpesa.PaymentHandler do
+ defmodule KejaDigital.Mpesa.PaymentHandler do
   require Logger
   alias KejaDigital.Payments
   alias KejaDigital.Store
@@ -49,12 +48,10 @@ defmodule KejaDigital.Mpesa.PaymentHandler do
   end
 
   defp find_tenant(%{phone_number: phone, bill_ref_number: door_number}) do
-    # Try to find tenant by phone number first
     case Store.get_user_by_phone(phone) do
       %{door_number: ^door_number} = tenant ->
         {:ok, tenant}
       nil ->
-        # If no tenant found by phone, try by door number
         case Store.get_user_by_door_number(door_number) do
           nil -> {:error, "No tenant found"}
           tenant -> {:ok, tenant}
@@ -98,7 +95,6 @@ defmodule KejaDigital.Mpesa.PaymentHandler do
   end
 
   defp parse_transaction_date(_date_string) do
-    # Implement based on Mpesa date format
     DateTime.utc_now()
   end
 end

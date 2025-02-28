@@ -167,7 +167,7 @@ defmodule KejaDigitalWeb.SupportBookingLive do
         <div class="mt-6 text-center">
           <p class="text-sm text-gray-600">
             Need immediate help?
-            <a href="/contact" class="font-medium text-indigo-600 hover:text-indigo-500">
+            <a href="/support/contact" class="font-medium text-indigo-600 hover:text-indigo-500">
               Contact our support team directly
             </a>
           </p>

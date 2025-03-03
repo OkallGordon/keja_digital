@@ -117,8 +117,8 @@ defmodule KejaDigitalWeb.FaqLive do
 
       Support Options:
       • Live Chat: Available during business hours
-      • Email: support@kejadigital.com
-      • Phone: +254 (0) 20 123 4567
+      • Email: infopkrentals@yahoo.com
+      • Phone: +254 (0) 795 579 388
       • Support Ticket System
       • Comprehensive Help Center
 
@@ -307,7 +307,7 @@ defmodule KejaDigitalWeb.FaqLive do
               </button>
 
               <%= if faq.visible do %>
-                <div class="mt-2 text-gray-600 bg-gray-50 p-4 rounded-lg">
+                <div class="mt-2 text-gray-600 bg-gray-50 p-4 rounded-lg whitespace-pre-wrap text-lg italic">
                   <%= faq.answer %>
                 </div>
               <% end %>

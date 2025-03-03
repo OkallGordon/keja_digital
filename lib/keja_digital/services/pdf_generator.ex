@@ -14,14 +14,22 @@ defmodule KejaDigital.Services.PDFGenerator do
   - phone_number: Phone number used for payment
   - payer_name: Name of the person who made the payment
   - property_name: Name/ID of the property being paid for (if available)
+
+  The user_credentials parameter should be a map containing:
+  - full_name: Full name of the logged-in user
+  - door_number: Door number of the tenant
+  - email: Email address of the user
+  - role: Role of the user (e.g., "Tenant")
   """
-  def generate_statement(payments, tenant_name \\ nil, property_info \\ nil) do
+  def generate_statement(payments, user_credentials \\ nil, property_info \\ nil) do
     payments
-    |> generate_statement_html(tenant_name, property_info)
+    |> generate_statement_html(user_credentials, property_info)
     |> generate_pdf()
   end
 
-  defp generate_statement_html(payments, tenant_name, property_info) do
+  defp generate_statement_html(payments, user_credentials, property_info) do
+    _tenant_name = if user_credentials, do: user_credentials.full_name, else: nil
+
     """
     <!DOCTYPE html>
     <html>
@@ -148,15 +156,7 @@ defmodule KejaDigital.Services.PDFGenerator do
 
         <div class="tenant-info">
           <h3>Tenant Information</h3>
-          <p><strong>Name:</strong> #{tenant_name || "Not specified"}</p>
-          #{if property_info do
-          """
-          <p><strong>Property:</strong> #{property_info.name || "Not specified"}</p>
-          <p><strong>Unit/Door:</strong> #{property_info.unit || "Not specified"}</p>
-          """
-          else
-          ""
-          end}
+          #{generate_tenant_info(user_credentials, property_info)}
         </div>
 
         <div class="statement-info">
@@ -201,6 +201,37 @@ defmodule KejaDigital.Services.PDFGenerator do
     </body>
     </html>
     """
+  end
+
+  defp generate_tenant_info(user_credentials, property_info) do
+    if user_credentials do
+      """
+      <p><strong>Name:</strong> #{user_credentials.full_name || "Not specified"}</p>
+      <p><strong>Door Number:</strong> #{user_credentials.door_number || "Not specified"}</p>
+      <p><strong>Email:</strong> #{user_credentials.email || "Not specified"}</p>
+      <p><strong>Role:</strong> #{user_credentials.role || "Tenant"}</p>
+      #{if property_info do
+        """
+        <p><strong>Property:</strong> #{property_info.name || "Not specified"}</p>
+        <p><strong>Unit/Door:</strong> #{property_info.unit || "Not specified"}</p>
+        """
+        else
+        ""
+        end}
+      """
+    else
+      """
+      <p><strong>Name:</strong> Not specified</p>
+      #{if property_info do
+        """
+        <p><strong>Property:</strong> #{property_info.name || "Not specified"}</p>
+        <p><strong>Unit/Door:</strong> #{property_info.unit || "Not specified"}</p>
+        """
+        else
+        ""
+        end}
+      """
+    end
   end
 
   defp get_period_label([]), do: "No payments"

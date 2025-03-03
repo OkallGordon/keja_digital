@@ -142,15 +142,15 @@ defmodule KejaDigital.Services.PDFGenerator do
           transform: rotate(-45deg);
           font-size: 100px;
           z-index: -1;
-          color: #01b5cd;
+          color:rgb(1, 152, 172);
         }
       </style>
     </head>
     <body>
       <div class="container">
-        <div class="watermark">KEJA DIGITAL</div>
+        <div class="watermark">PK RENTALS</div>
         <div class="header">
-          <div class="company-name">KEJA DIGITAL</div>
+          <div class="company-name">PK RENTALS</div>
           <h1 class="statement-title">Rent Payment Statement</h1>
         </div>
 
@@ -165,6 +165,7 @@ defmodule KejaDigital.Services.PDFGenerator do
           </div>
           <div class="statement-date">
             <p><strong>Statement Date:</strong> #{DateTime.utc_now() |> Calendar.strftime("%B %d, %Y")}</p>
+            <p><strong>Statement Time:</strong> #{DateTime.utc_now() |> Calendar.strftime("%H:%M:%S")}</p>
             <p><strong>Reference:</strong> STMT-#{DateTime.utc_now() |> Calendar.strftime("%Y%m%d%H%M")}</p>
           </div>
         </div>
@@ -194,8 +195,8 @@ defmodule KejaDigital.Services.PDFGenerator do
 
         <div class="footer">
           <p>This is an electronically generated statement and does not require a signature.</p>
-          <p>For any queries, please contact us at support@kejadigital.com or call +254 700 000 000</p>
-          <p>&copy; #{DateTime.utc_now().year} Keja Digital. All rights reserved.</p>
+          <p>For any queries, please contact us at infopkrentals@yahoo.com or call +254 795 579 388</p>
+          <p>&copy; #{DateTime.utc_now().year} PK Rentals. All rights reserved.</p>
         </div>
       </div>
     </body>

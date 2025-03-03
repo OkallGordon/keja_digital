@@ -4,15 +4,20 @@ defmodule KejaDigitalWeb.MpesaPaymentLive do
   alias KejaDigital.Services.PDFGenerator
   import Ecto.Query, except: [update: 2, update: 3]
 
-  def mount(_params, session, socket) do
+  def mount(_params, _session, %{assigns: %{current_user: nil}} = socket) do
+    {:ok, redirect(socket, to: "user/log_in")}
+  end
+
+  def mount(_params, _session, %{assigns: %{current_user: user}} = socket) do
     if connected?(socket) do
-      Phoenix.PubSub.subscribe(KejaDigital.PubSub, "mpesa_payments:#{session["tenant_id"]}")
+      Phoenix.PubSub.subscribe(KejaDigital.PubSub, "mpesa_payments:#{user.id}")
     end
 
     socket =
       assign(socket,
-        tenant_id: session["tenant_id"],
-        payments: list_payments(session["tenant_id"]),
+        tenant_id: user.id,
+        user: user,
+        payments: list_payments(user.id),
         start_date: Date.beginning_of_month(Date.utc_today()),
         end_date: Date.end_of_month(Date.utc_today()),
         till_number: "4154742",
@@ -40,36 +45,18 @@ defmodule KejaDigitalWeb.MpesaPaymentLive do
     end
   end
 
-  def handle_event("search", %{"search_term" => term}, socket) do
-    payments = list_payments(
-      socket.assigns.tenant_id,
-      socket.assigns.start_date,
-      socket.assigns.end_date,
-      term
-    )
-
-    {:noreply,
-     socket
-     |> assign(:search_term, term)
-     |> assign(:payments, payments)}
-  end
-
-
-  def handle_event("sort", %{"field" => field}, socket) do
-    {field, direction} = sort_params(field, socket.assigns.sort_by, socket.assigns.sort_direction)
-
-    {:noreply,
-     socket
-     |> assign(:sort_by, field)
-     |> assign(:sort_direction, direction)
-     |> assign(:loading, true)
-     |> load_payments()}
-  end
-
   def handle_event("download-statement", _params, socket) do
     payments = list_payments(socket.assigns.tenant_id, socket.assigns.start_date, socket.assigns.end_date)
+    user = socket.assigns.user
 
-    case PDFGenerator.generate_statement(payments) do
+    user_credentials = %{
+      full_name: user.full_name,
+      door_number: user.door_number,
+      email: user.email,
+      role: "Tenant"
+    }
+
+    case PDFGenerator.generate_statement(payments, user_credentials) do
       {:ok, statement_data} ->
         filename = "rent_statement_#{Date.to_string(socket.assigns.start_date)}_#{Date.to_string(socket.assigns.end_date)}.pdf"
 
@@ -88,6 +75,30 @@ defmodule KejaDigitalWeb.MpesaPaymentLive do
     end
   end
 
+  def handle_event("search", %{"search_term" => term}, socket) do
+    payments = list_payments(
+      socket.assigns.tenant_id,
+      socket.assigns.start_date,
+      socket.assigns.end_date,
+      term
+    )
+
+    {:noreply,
+     socket
+     |> assign(:search_term, term)
+     |> assign(:payments, payments)}
+  end
+
+  def handle_event("sort", %{"field" => field}, socket) do
+    {field, direction} = sort_params(field, socket.assigns.sort_by, socket.assigns.sort_direction)
+
+    {:noreply,
+     socket
+     |> assign(:sort_by, field)
+     |> assign(:sort_direction, direction)
+     |> assign(:loading, true)
+     |> load_payments()}
+  end
   def handle_info({:payment_made, _payment}, socket) do
     {:noreply,
      socket
@@ -111,7 +122,6 @@ defmodule KejaDigitalWeb.MpesaPaymentLive do
       socket.assigns.sort_by,
       socket.assigns.sort_direction
     )
-
     assign(socket, payments: payments, loading: false)
   end
 
@@ -173,6 +183,7 @@ defmodule KejaDigitalWeb.MpesaPaymentLive do
       :desc -> "↓"
     end
   end
+
   defp sort_indicator(_, _, _), do: ""
 
   defp status_color_class(status) do

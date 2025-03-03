@@ -165,7 +165,7 @@ defmodule KejaDigital.Services.PDFGenerator do
           </div>
           <div class="statement-date">
             <p><strong>Statement Date:</strong> #{DateTime.utc_now() |> Calendar.strftime("%B %d, %Y")}</p>
-            <p><strong>Statement Time:</strong> #{DateTime.utc_now() |> Calendar.strftime("%H:%M:%S")}</p>
+            <p><strong>Generated Time:</strong> #{DateTime.utc_now() |> Calendar.strftime("%H:%M:%S")}</p>
             <p><strong>Reference:</strong> STMT-#{DateTime.utc_now() |> Calendar.strftime("%Y%m%d%H%M")}</p>
           </div>
         </div>
@@ -287,7 +287,6 @@ defmodule KejaDigital.Services.PDFGenerator do
         "--footer-spacing", "5"
       ]
     ]
-
     case PdfGenerator.generate(html, pdf_options) do
       {:ok, path} ->
         case File.read(path) do

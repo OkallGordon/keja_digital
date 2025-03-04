@@ -150,6 +150,8 @@ defmodule KejaDigitalWeb.Router do
       live "/dashboard", AdminDashboardLive
       live "/dashboard/audit_logs", Admin.AuditLogsLive, as: :audit_logs
       live "/payments/:tenant_id", PaymentLive
+
+      live "/welcome", WelcomeLive, :index
     end
   end
   scope "/", KejaDigitalWeb do

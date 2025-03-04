@@ -102,6 +102,8 @@ defmodule KejaDigitalWeb.Router do
       live "/analytics/views", AnalyticsLive.Views
       live "/properties/active", PropertiesLive.Active
 
+      live "/welcome/user", UserWelcomeLive, :index
+
     end
   end
 

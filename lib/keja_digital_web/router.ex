@@ -28,6 +28,7 @@ defmodule KejaDigitalWeb.Router do
     live "/messages", MessagesLive.Index
     live "/support/faq", FaqLive
     live "/support/booking", SupportBookingLive
+    live "/rent/payment", RentPaymentLive
 
     get "/properties/available/and_pricing", PropertyController, :available
     get "/support/contact", SupportController, :contact

@@ -46,7 +46,6 @@ defmodule KejaDigitalWeb.MpesaPaymentLive do
            |> put_flash(:error, "Start date must be before or equal to end date")
            |> assign(:loading, false)}
         end
-
       _ ->
         {:noreply,
          socket
@@ -108,6 +107,10 @@ defmodule KejaDigitalWeb.MpesaPaymentLive do
      |> assign(:sort_direction, direction)
      |> assign(:loading, true)
      |> load_payments()}
+  end
+
+  def handle_event("navigate_to_rent_payment", _, socket) do
+    {:noreply, push_navigate(socket, to: ~p"/rent/payment")}
   end
   def handle_info({:payment_made, _payment}, socket) do
     {:noreply,
@@ -236,11 +239,12 @@ defmodule KejaDigitalWeb.MpesaPaymentLive do
 
             <div>
               <button
-                phx-click="open_pay_rent_modal"
-                class="w-full bg-green-600 text-white px-6 py-4 rounded-xl hover:bg-green-700 transition-colors duration-300 font-bold text-xl shadow-md"
-              >
+                 phx-click="navigate_to_rent_payment"
+                 class="w-full bg-green-600 text-white px-6 py-4 rounded-xl hover:bg-green-700 transition-colors duration-300 font-bold text-xl shadow-md"
+                >
                 Pay Rent
-              </button>
+            </button>
+
             </div>
           </div>
         </div>

@@ -96,13 +96,11 @@ defmodule KejaDigitalWeb.Router do
       live "/tenant_agreements/:id/show/edit", TenantAgreementLive.Show, :edit
       live "/tenant_agreement_status/:tenant_id", TenantAgreementLive
 
-      live "/tenant/reminders", UserPaymentLive
+      live "/tenant/reminders", RentPaymentCheckerLive
       live "/tenant/payments", MpesaPaymentLive
       live "/tenant/dashboard", Tenant.DashboardLive, :index
       live "/analytics/views", AnalyticsLive.Views
       live "/properties/active", PropertiesLive.Active
-
-      live "/welcome/user", UserWelcomeLive, :index
 
     end
   end
@@ -151,7 +149,7 @@ defmodule KejaDigitalWeb.Router do
       live "/agreements/:id", AgreementDetailLive
       live "/dashboard", AdminDashboardLive
       live "/dashboard/audit_logs", Admin.AuditLogsLive, as: :audit_logs
-      live "/payments/:tenant_id", PaymentLive
+      live "/payments/:tenant_id", UserPaymentLive
 
       live "/welcome", WelcomeLive, :index
     end

@@ -97,19 +97,18 @@ defmodule KejaDigitalWeb.NotificationsLive do
                         <%= notification.content %>
                       </p>
 
-                      <!-- Action Buttons -->
-                      <%= if notification.agreement_id do %>
-                        <div class="mt-4">
-                          <.link
-                            navigate={~p"/agreements/#{notification.agreement_id}"}
-                            class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-full text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                          >
-                            View Agreement
-                            <svg class="ml-1.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                            </svg>
-                          </.link>
-                        </div>
+                  <%= if notification.tenant_agreement_id do %>
+                    <div class="mt-4">
+                  <.link
+                      navigate={~p"/agreements/#{notification.tenant_agreement_id}"}
+                      class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-full text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                     >
+                       View Agreement
+                    <svg class="ml-1.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                   </.link>
+                     </div>
                       <% end %>
                     </div>
                   </div>

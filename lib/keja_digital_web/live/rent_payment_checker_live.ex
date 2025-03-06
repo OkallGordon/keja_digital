@@ -59,11 +59,11 @@ defmodule KejaDigitalWeb.RentPaymentCheckerLive do
         "Your rent payment of KES #{payment.amount} for Door #{payment.door_number} is #{payment.days_overdue} days overdue."
     end
   end
-
   @impl true
-  def handle_event("navigate_to_payments", %{"payment_id" => _payment_id}, socket) do
-    {:noreply, push_navigate(socket, to: "/tenant/payments")}
+  def handle_event("navigate_to_rent_payment", _, socket) do
+    {:noreply, push_navigate(socket, to: ~p"/rent/payment")}
   end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -124,7 +124,7 @@ defmodule KejaDigitalWeb.RentPaymentCheckerLive do
                     <div class="mt-4 flex justify-end">
                       <button
                         class={payment_button_class(status)}
-                        phx-click="navigate_to_payments"
+                        phx-click="navigate_to_rent_payment"
                         phx-value-payment_id={payment.id}
                       >
                         Make Payment

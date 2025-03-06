@@ -50,3 +50,6 @@ config :phoenix, :json_library, Jason
 
   # import config/runtime.exs
 import_config "#{config_env()}.exs"
+
+config :swoosh, :api_client, Swoosh.ApiClient.Hackney
+config :swoosh, :adapter, Swoosh.Adapters.Local

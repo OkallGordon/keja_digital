@@ -26,3 +26,8 @@ config :keja_digital, :mpesa,
   consumer_secret: System.get_env("MPESA_CONSUMER_SECRET"),
   business_short_code: System.get_env("MPESA_BUSINESS_SHORT_CODE"),
   passkey: System.get_env("MPESA_PASSKEY")
+
+config :keja_digital, KejaDigital.Repo,
+  url: System.get_env("postgresql://gordon_ochieng_user:j2Ydc8FusYMVqMfRgbg7WPdTEme9eiB8@dpg-cv4q1c0gph6c7393v0lg-a/gordon_ochieng"),
+  pool_size: 10,
+  ssl: true

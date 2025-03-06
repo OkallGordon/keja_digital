@@ -8,12 +8,14 @@ defmodule KejaDigital.Application do
 
   @impl true
   def start(_type, _args) do
-    if Mix.env() in [:dev, :test] do
-      Dotenv.load!
+    if Mix.env() in [:dev, :test, :prod] do
+      case Code.ensure_loaded?(Dotenv) do
+        true -> :ok
+        false -> Logger.warning("Dotenv is not available, skipping .env loading.")
+      end
     end
 
     validate_mpesa_config()
-
 
     children = [
       KejaDigitalWeb.Telemetry,
@@ -58,7 +60,6 @@ defmodule KejaDigital.Application do
 
     if Enum.empty?(missing), do: :ok, else: {:error, missing}
   end
-
 
   @impl true
   def config_change(changed, _new, removed) do

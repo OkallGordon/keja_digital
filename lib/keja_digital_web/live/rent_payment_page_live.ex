@@ -15,7 +15,6 @@ defmodule KejaDigitalWeb.RentPaymentLive do
       )
     }
   end
-
   def render(assigns) do
     ~H"""
     <div class="container mx-auto px-4 py-8">
@@ -140,7 +139,6 @@ defmodule KejaDigitalWeb.RentPaymentLive do
     </div>
     """
   end
-
   def handle_event("select_payment_type", %{"type" => type, "amount" => amount}, socket) do
     {:noreply,
       socket

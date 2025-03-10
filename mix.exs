@@ -10,11 +10,12 @@ defmodule KejaDigital.MixProject do
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
-
       releases: [
         keja_digital: [
           include_executables_for: [:unix],
-          applications: [runtime_tools: :permanent]
+          applications: [runtime_tools: :permanent],
+          steps: [:assemble, :tar],
+          strip_beams: Mix.env() == :prod
         ]
       ]
     ]
@@ -26,7 +27,7 @@ defmodule KejaDigital.MixProject do
   def application do
     [
       mod: {KejaDigital.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :os_mon]
     ]
   end
 
@@ -39,16 +40,14 @@ defmodule KejaDigital.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-
-        {:ex_heroicons, "~> 3.1.0"},
-        {:heroicons,
-          github: "tailwindlabs/heroicons",
-          tag: "v2.1.5",
-          sparse: "optimized",
-          app: false,
-          compile: false,
-          depth: 1},
-
+      {:ex_heroicons, "~> 3.1.0"},
+      {:heroicons,
+        github: "tailwindlabs/heroicons",
+        tag: "v2.1.5",
+        sparse: "optimized",
+        app: false,
+        compile: false,
+        depth: 1},
       {:bcrypt_elixir, "~> 3.0"},
       {:phoenix, "~> 1.7.14"},
       {:phoenix_ecto, "~> 4.5"},
@@ -73,7 +72,7 @@ defmodule KejaDigital.MixProject do
       {:httpoison, "~> 2.2.1"},
       {:pdf_generator, "~> 0.6.2"},
       {:number, "~> 1.0.5"},
-      {:dotenv, "~> 3.1.0", only: [:dev, :test, :prod]}
+      {:dotenv, "~> 3.1.0"}  # Removed the only: [:dev, :test, :prod] since it's used in all envs
     ]
   end
 
@@ -95,7 +94,9 @@ defmodule KejaDigital.MixProject do
         "tailwind keja_digital --minify",
         "esbuild keja_digital --minify",
         "phx.digest"
-      ]
+      ],
+      # Adding a release alias to make deployment easier
+      "release.prod": ["assets.deploy", "release"]
     ]
   end
 end

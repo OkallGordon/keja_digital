@@ -8,7 +8,7 @@ defmodule KejaDigital.Application do
 
   @impl true
   def start(_type, _args) do
-    if Mix.env() in [:dev, :test, :prod] do
+    if Application.get_env(:keja_digital, :environment) == :prod do
       case Code.ensure_loaded?(Dotenv) do
         true -> :ok
         false -> Logger.warning("Dotenv is not available, skipping .env loading.")

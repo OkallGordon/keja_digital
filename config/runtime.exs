@@ -1,5 +1,8 @@
 import Config
 
+# added the runtime.exs file, add:
+config :keja_digital, :environment, config_env()
+
 if config_env() in [:dev, :test, :prod] do
   if Code.ensure_loaded?(Dotenv) do
     Dotenv.load()

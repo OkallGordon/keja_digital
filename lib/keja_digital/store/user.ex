@@ -42,23 +42,43 @@ defmodule KejaDigital.Store.User do
   end
 
   def registration_changeset(user, attrs, opts \\ []) do
-    # Get required fields based on environment
-    required_fields = if Mix.env() == :test do
-      @base_required_fields
-    else
-      @base_required_fields ++ [:door_number]
-    end
+    # Get required fields based on environment.
+    # Mix.env() cannot be used here because Mix is not available
+    # inside the production release.
+    environment = Application.get_env(:keja_digital, :environment)
+
+    required_fields =
+      if environment == :test do
+        @base_required_fields
+      else
+        @base_required_fields ++ [:door_number]
+      end
 
     user
-    |> cast(attrs, [:email, :password, :role, :door_number] ++ required_fields ++ @optional_fields)
+    |> cast(
+      attrs,
+      [:email, :password, :role, :door_number] ++ required_fields ++ @optional_fields
+    )
     |> validate_length(:full_name, min: 10, max: 30)
-    |> validate_format(:full_name, ~r/^[A-Z][a-z]+\s[A-Za-z]+\s?[A-Za-z]*$/, message: "must start with a capital letter and contain 2 or 3 names")
+    |> validate_format(
+      :full_name,
+      ~r/^[A-Z][a-z]+\s[A-Za-z]+\s?[A-Za-z]*$/,
+      message: "must start with a capital letter and contain 2 or 3 names"
+    )
     |> validate_email(opts)
     |> validate_password(opts)
     |> validate_required(required_fields)
     |> validate_phone_number(:phone_number)
-    |> validate_format(:phone_number, ~r/^07\d{8}$|^\+254\d{9}$/, message: "Phone number must start with 07 or +254 and follow the correct format")
-    |> validate_format(:next_of_kin_contact, ~r/^07\d{8}$|^\+254\d{9}$/, message: "Next of kin contact must start with 07 or +254 and follow the correct format")
+    |> validate_format(
+      :phone_number,
+      ~r/^07\d{8}$|^\+254\d{9}$/,
+      message: "Phone number must start with 07 or +254 and follow the correct format"
+    )
+    |> validate_format(
+      :next_of_kin_contact,
+      ~r/^07\d{8}$|^\+254\d{9}$/,
+      message: "Next of kin contact must start with 07 or +254 and follow the correct format"
+    )
     |> validate_length(:passport, min: 6, message: "Your passport number is too short")
     |> maybe_validate_door_number()
     |> unique_constraint(:email)
@@ -70,9 +90,17 @@ defmodule KejaDigital.Store.User do
   defp validate_email(changeset, opts) do
     changeset
     |> validate_required([:email])
-    |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
+    |> validate_format(
+      :email,
+      ~r/^[^\s]+@[^\s]+$/,
+      message: "must have the @ sign and no spaces"
+    )
     |> validate_length(:email, max: 160)
-    |> validate_format(:email, ~r/^[a-zA-Z0-9._%+-]+@(gmail\.com|yahoo\.com)$/, message: "must be a valid email from Gmail or Yahoo")
+    |> validate_format(
+      :email,
+      ~r/^[a-zA-Z0-9._%+-]+@(gmail\.com|yahoo\.com)$/,
+      message: "must be a valid email from Gmail or Yahoo"
+    )
     |> maybe_validate_unique_email(opts)
   end
 
@@ -85,26 +113,34 @@ defmodule KejaDigital.Store.User do
 
       _ ->
         case Regex.match?(~r/^(?:\+254|07)\d{8}$/, phone_number) do
-          true -> changeset
-          false -> add_error(changeset, field, "must be a valid Safaricom phone number")
+          true ->
+            changeset
+
+          false ->
+            add_error(changeset, field, "must be a valid Safaricom phone number")
         end
     end
   end
 
-    defp maybe_validate_door_number(changeset) do
-      if get_field(changeset, :door_number) do
-        validate_format(changeset, :door_number, ~r/^[A-Z]-\d+$/, message: "must be in format like A-123")
-      else
-        changeset
-      end
-    end
-
-    defp validate_password(changeset, opts) do
+  defp maybe_validate_door_number(changeset) do
+    if get_field(changeset, :door_number) do
+      validate_format(
+        changeset,
+        :door_number,
+        ~r/^[A-Z]-\d+$/,
+        message: "must be in format like A-123"
+      )
+    else
       changeset
-      |> validate_required([:password])
-      |> validate_length(:password, min: 12, max: 72)
-      |> maybe_hash_password(opts)
     end
+  end
+
+  defp validate_password(changeset, opts) do
+    changeset
+    |> validate_required([:password])
+    |> validate_length(:password, min: 12, max: 72)
+    |> maybe_hash_password(opts)
+  end
 
   defp maybe_hash_password(changeset, opts) do
     hash_password? = Keyword.get(opts, :hash_password, true)
@@ -135,15 +171,21 @@ defmodule KejaDigital.Store.User do
     |> cast(attrs, [:email])
     |> validate_email(opts)
     |> case do
-      %{changes: %{email: _}} = changeset -> changeset
-      %{} = changeset -> add_error(changeset, :email, "did not change")
+      %{changes: %{email: _}} = changeset ->
+        changeset
+
+      %{} = changeset ->
+        add_error(changeset, :email, "did not change")
     end
   end
 
   def password_changeset(user, attrs, opts \\ []) do
     user
     |> cast(attrs, [:password])
-    |> validate_confirmation(:password, message: "should be the same as the password")
+    |> validate_confirmation(
+      :password,
+      message: "should be the same as the password"
+    )
     |> validate_password(opts)
   end
 
@@ -152,7 +194,10 @@ defmodule KejaDigital.Store.User do
     change(user, confirmed_at: now)
   end
 
-  def valid_password?(%KejaDigital.Store.User{hashed_password: hashed_password}, password)
+  def valid_password?(
+        %KejaDigital.Store.User{hashed_password: hashed_password},
+        password
+      )
       when is_binary(hashed_password) and byte_size(password) > 0 do
     Bcrypt.verify_pass(password, hashed_password)
   end
@@ -172,9 +217,14 @@ defmodule KejaDigital.Store.User do
 
   def after_operation(user, action) do
     case action do
-      :create -> AuditLogger.log_registration(user)
-      :update -> AuditLogger.log_profile_update(user, %{})
-      :delete -> AuditLogger.log_account_deletion(user)
+      :create ->
+        AuditLogger.log_registration(user)
+
+      :update ->
+        AuditLogger.log_profile_update(user, %{})
+
+      :delete ->
+        AuditLogger.log_account_deletion(user)
     end
 
     user

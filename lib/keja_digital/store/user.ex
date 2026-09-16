@@ -123,17 +123,17 @@ defmodule KejaDigital.Store.User do
   end
 
   defp maybe_validate_door_number(changeset) do
-    if get_field(changeset, :door_number) do
-      validate_format(
-        changeset,
-        :door_number,
-        ~r/^[A-Z]-\d+$/,
-        message: "must be in format like A-123"
-      )
-    else
-      changeset
-    end
+  if get_field(changeset, :door_number) do
+    validate_format(
+      changeset,
+      :door_number,
+      ~r/^Door (0[1-9]|10)$/,
+      message: "Please select a valid door number"
+    )
+  else
+    changeset
   end
+end
 
   defp validate_password(changeset, opts) do
     changeset

@@ -16,7 +16,12 @@ defmodule KejaDigital.Release do
   def seed_doors do
     load_app()
 
-    alias KejaDigital.Repo
+    for repo <- repos() do
+      {:ok, _, _} = Ecto.Migrator.with_repo(repo, &do_seed_doors/1)
+    end
+  end
+
+  defp do_seed_doors(repo) do
     alias KejaDigital.Store.DoorNumber
 
     door_numbers = [
@@ -33,15 +38,17 @@ defmodule KejaDigital.Release do
     ]
 
     Enum.each(door_numbers, fn door_number ->
-      case Repo.get_by(DoorNumber, number: door_number.number) do
+      case repo.get_by(DoorNumber, number: door_number.number) do
         nil ->
           DoorNumber.changeset(%DoorNumber{}, door_number)
-          |> Repo.insert!()
+          |> repo.insert!()
 
         _existing_door ->
           :already_exists
       end
     end)
+
+    {:ok, []}
   end
 
   def rollback(repo, version) do
